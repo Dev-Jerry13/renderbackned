@@ -1,0 +1,2 @@
+◇ injected env (4) from .env // tip: ⌘ override existing { override: true }
+[INFO] Server running on port 3000 in development mode
