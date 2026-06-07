@@ -28,6 +28,12 @@ app.use('/api/students', auth, require('./modules/students/students.routes'));
 app.use('/api/teachers', auth, require('./modules/teachers/teachers.routes'));
 app.use('/api/classes', auth, require('./modules/classes/classes.routes'));
 app.use('/api/subjects', auth, require('./modules/subjects/subjects.routes'));
+app.use('/api/attendance', auth, require('./modules/attendance/attendance.routes'));
+app.use('/api/exams', auth, require('./modules/exams/exams.routes'));
+app.use('/api/results', auth, require('./modules/results/results.routes'));
+app.use('/api/assignments', auth, require('./modules/assignments/assignments.routes'));
+app.use('/api/timetable', auth, require('./modules/timetable/timetable.routes'));
+app.use('/api/announcements', auth, require('./modules/announcements/announcements.routes'));
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });

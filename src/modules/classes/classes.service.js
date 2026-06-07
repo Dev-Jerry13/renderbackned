@@ -1,6 +1,7 @@
 const ApiError = require('../../utils/ApiError');
 const repo = require('./classes.repository');
 const studentRepo = require('../students/students.repository');
+const timetableRepo = require('../timetable/timetable.repository');
 
 async function list() {
   return repo.findAll();
@@ -28,7 +29,7 @@ async function getStudents(id) {
 
 async function getTimetable(id) {
   await getById(id);
-  return [];
+  return timetableRepo.findByClass(id);
 }
 
 module.exports = { list, getById, create, update, getStudents, getTimetable };
