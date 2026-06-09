@@ -19,6 +19,16 @@ async function list(req, res, next) {
   }
 }
 
+async function getByStudent(req, res, next) {
+  try {
+    const { month } = req.query;
+    const records = await attendanceService.getByStudent(req.params.id, month);
+    res.json(records);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function update(req, res, next) {
   try {
     const record = await attendanceService.update(req.params.id, req.validated);
@@ -28,4 +38,4 @@ async function update(req, res, next) {
   }
 }
 
-module.exports = { mark, list, update };
+module.exports = { mark, list, getByStudent, update };

@@ -2,7 +2,7 @@ const classService = require('./classes.service');
 
 async function list(req, res, next) {
   try {
-    const classes = await classService.list();
+    const classes = await classService.list(req.user.schoolId);
     res.json(classes);
   } catch (err) {
     next(err);
@@ -30,6 +30,15 @@ async function update(req, res, next) {
   }
 }
 
+async function getById(req, res, next) {
+  try {
+    const cls = await classService.getById(req.params.id);
+    res.json(cls);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function getStudents(req, res, next) {
   try {
     const students = await classService.getStudents(req.params.id);
@@ -48,4 +57,4 @@ async function getTimetable(req, res, next) {
   }
 }
 
-module.exports = { list, create, update, getStudents, getTimetable };
+module.exports = { list, create, getById, update, getStudents, getTimetable };

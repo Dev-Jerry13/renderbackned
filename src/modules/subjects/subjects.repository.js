@@ -1,7 +1,7 @@
 const db = require('../../config/db');
 
-async function findAll() {
-  return db('subjects').select('*').orderBy('name');
+async function findAll(schoolId) {
+  return db('subjects').where({ school_id: schoolId }).select('*').orderBy('name');
 }
 
 async function findById(id) {

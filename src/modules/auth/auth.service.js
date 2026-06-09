@@ -35,8 +35,17 @@ async function refresh(token) {
     const user = await db('users').where({ id: decoded.userId, is_active: true }).first();
     if (!user) throw new ApiError(401, 'User not found');
 
+    let teacherId, studentId;
+    if (user.role === 'teacher') {
+      const teacher = await db('teachers').where({ user_id: user.id }).first();
+      teacherId = teacher?.id;
+    } else if (user.role === 'student') {
+      const student = await db('students').where({ user_id: user.id }).first();
+      studentId = student?.id;
+    }
+
     const newToken = jwt.sign(
-      { userId: user.id, role: user.role, schoolId: user.school_id },
+      { userId: user.id, role: user.role, schoolId: user.school_id, teacherId, studentId },
       env.JWT_SECRET,
       { expiresIn: env.JWT_EXPIRES }
     );

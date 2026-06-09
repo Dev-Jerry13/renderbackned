@@ -3,8 +3,8 @@ const ApiError = require('../../utils/ApiError');
 const repo = require('./teachers.repository');
 const { hashPassword } = require('../auth/auth.service');
 
-async function list() {
-  return repo.findAll();
+async function list(schoolId) {
+  return repo.findAll(schoolId);
 }
 
 async function getById(id) {
@@ -42,6 +42,12 @@ async function update(id, data) {
   return repo.findById(updated.id);
 }
 
+async function remove(id) {
+  await getById(id);
+  await repo.remove(id);
+  return { message: 'Teacher deleted successfully' };
+}
+
 async function getClasses(id) {
   await getById(id);
   return db('teacher_assignments')
@@ -57,4 +63,4 @@ async function getClasses(id) {
     .where('teacher_assignments.teacher_id', id);
 }
 
-module.exports = { list, getById, create, update, getClasses };
+module.exports = { list, getById, create, update, remove, getClasses };

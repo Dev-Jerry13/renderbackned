@@ -8,12 +8,12 @@ function baseQuery() {
       'teachers.full_name as class_teacher_name'
     )
     .leftJoin('students', 'classes.id', 'students.class_id')
-    .leftJoin('teachers', 'classes.class_teacher_id', 'teachers.id')
+    .leftJoin('teachers', 'classes.class_teacher_id', 'teachers.user_id')
     .groupBy('classes.id', 'teachers.full_name');
 }
 
-async function findAll() {
-  return baseQuery().orderBy('classes.name');
+async function findAll(schoolId) {
+  return baseQuery().where('classes.school_id', schoolId).orderBy('classes.name');
 }
 
 async function findById(id) {

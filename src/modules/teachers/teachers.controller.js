@@ -2,7 +2,7 @@ const teacherService = require('./teachers.service');
 
 async function list(req, res, next) {
   try {
-    const teachers = await teacherService.list();
+    const teachers = await teacherService.list(req.user.schoolId);
     res.json(teachers);
   } catch (err) {
     next(err);
@@ -48,4 +48,13 @@ async function getClasses(req, res, next) {
   }
 }
 
-module.exports = { list, create, getById, update, getClasses };
+async function remove(req, res, next) {
+  try {
+    const result = await teacherService.remove(req.params.id);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { list, create, getById, update, remove, getClasses };

@@ -21,6 +21,15 @@ async function create(req, res, next) {
   }
 }
 
+async function getById(req, res, next) {
+  try {
+    const exam = await examService.getById(req.params.id);
+    res.json(exam);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function publish(req, res, next) {
   try {
     const exam = await examService.publish(req.params.id, req.validated.is_published);
@@ -30,4 +39,13 @@ async function publish(req, res, next) {
   }
 }
 
-module.exports = { list, create, publish };
+async function remove(req, res, next) {
+  try {
+    const result = await examService.remove(req.params.id);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { list, create, getById, publish, remove };

@@ -12,6 +12,23 @@ async function findByClassAndDate(classId, date) {
     .orderBy('students.roll_number');
 }
 
+async function findByStudent(studentId, month) {
+  let query = db('attendance')
+    .select(
+      'attendance.*',
+      'students.full_name as student_name',
+      'students.roll_number'
+    )
+    .join('students', 'attendance.student_id', 'students.id')
+    .where('attendance.student_id', studentId);
+
+  if (month) {
+    query = query.whereRaw("to_char(date, 'YYYY-MM') = ?", [month]);
+  }
+
+  return query.orderBy('attendance.date', 'desc');
+}
+
 async function bulkUpsert(records) {
   return db('attendance')
     .insert(records)
@@ -28,4 +45,4 @@ async function update(id, data) {
   return record;
 }
 
-module.exports = { findByClassAndDate, bulkUpsert, findById, update };
+module.exports = { findByClassAndDate, findByStudent, bulkUpsert, findById, update };

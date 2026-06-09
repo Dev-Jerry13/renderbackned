@@ -18,4 +18,8 @@ async function update(id, data) {
   return exam;
 }
 
-module.exports = { findAll, findById, create, update };
+async function remove(id) {
+  return db('exams').where({ id }).delete();
+}
+
+module.exports = { findAll, findById, create, update, remove };

@@ -3,8 +3,8 @@ const ApiError = require('../../utils/ApiError');
 const repo = require('./students.repository');
 const { hashPassword } = require('../auth/auth.service');
 
-async function list() {
-  return repo.findAll();
+async function list(schoolId) {
+  return repo.findAll(schoolId);
 }
 
 async function getById(id) {

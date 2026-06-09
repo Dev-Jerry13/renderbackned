@@ -12,9 +12,13 @@ async function list(req, res, next) {
 
 async function create(req, res, next) {
   try {
+    const teacherId = req.user.teacherId || req.validated.teacher_id;
+    if (!teacherId) {
+      return res.status(400).json({ error: 'Teacher ID is required. Admin must provide teacher_id in request body.' });
+    }
     const assignment = await assignmentService.create({
       ...req.validated,
-      teacher_id: req.user.teacherId,
+      teacher_id: teacherId,
     });
     res.status(201).json(assignment);
   } catch (err) {

@@ -9,10 +9,21 @@ async function create(data) {
   return repo.create(data);
 }
 
-async function publish(id, isPublished) {
+async function getById(id) {
   const exam = await repo.findById(id);
   if (!exam) throw new ApiError(404, 'Exam not found');
+  return exam;
+}
+
+async function publish(id, isPublished) {
+  await getById(id);
   return repo.update(id, { is_published: isPublished });
 }
 
-module.exports = { list, create, publish };
+async function remove(id) {
+  await getById(id);
+  await repo.remove(id);
+  return { message: 'Exam deleted successfully' };
+}
+
+module.exports = { list, create, getById, publish, remove };

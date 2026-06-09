@@ -18,10 +18,14 @@ async function getByClassAndDate(classId, date) {
   return repo.findByClassAndDate(classId, date);
 }
 
+async function getByStudent(studentId, month) {
+  return repo.findByStudent(studentId, month);
+}
+
 async function update(id, data) {
   const existing = await repo.findById(id);
   if (!existing) throw new ApiError(404, 'Attendance record not found');
   return repo.update(id, data);
 }
 
-module.exports = { markAttendance, getByClassAndDate, update };
+module.exports = { markAttendance, getByClassAndDate, getByStudent, update };

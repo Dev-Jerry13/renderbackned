@@ -5,7 +5,6 @@ const morgan = require('morgan');
 
 const db = require('./config/db');
 const auth = require('./middleware/auth');
-const allow = require('./middleware/rbac');
 
 const app = express();
 
@@ -34,6 +33,7 @@ app.use('/api/results', auth, require('./modules/results/results.routes'));
 app.use('/api/assignments', auth, require('./modules/assignments/assignments.routes'));
 app.use('/api/timetable', auth, require('./modules/timetable/timetable.routes'));
 app.use('/api/announcements', auth, require('./modules/announcements/announcements.routes'));
+app.use('/api/fees', auth, require('./modules/fees/fees.routes'));
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });

@@ -3,6 +3,9 @@ const timetableService = require('./timetable.service');
 async function list(req, res, next) {
   try {
     const { classId } = req.query;
+    if (!classId) {
+      return res.status(400).json({ error: 'classId query parameter is required' });
+    }
     const entries = await timetableService.getByClass(classId);
     res.json(entries);
   } catch (err) {

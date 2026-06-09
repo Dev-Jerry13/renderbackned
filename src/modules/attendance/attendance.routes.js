@@ -8,6 +8,7 @@ const router = Router();
 
 router.post('/mark', allow('admin', 'teacher'), validate(markAttendanceSchema), controller.mark);
 router.get('/', allow('admin', 'teacher'), controller.list);
+router.get('/student/:id', allow('admin', 'teacher', 'student'), controller.getByStudent);
 router.put('/:id', allow('admin', 'teacher'), validate(updateAttendanceSchema), controller.update);
 
 module.exports = router;

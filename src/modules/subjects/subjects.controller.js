@@ -2,7 +2,7 @@ const subjectService = require('./subjects.service');
 
 async function list(req, res, next) {
   try {
-    const subjects = await subjectService.list();
+    const subjects = await subjectService.list(req.user.schoolId);
     res.json(subjects);
   } catch (err) {
     next(err);

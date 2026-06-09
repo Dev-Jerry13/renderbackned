@@ -2,7 +2,7 @@ const studentService = require('./students.service');
 
 async function list(req, res, next) {
   try {
-    const students = await studentService.list();
+    const students = await studentService.list(req.user.schoolId);
     res.json(students);
   } catch (err) {
     next(err);

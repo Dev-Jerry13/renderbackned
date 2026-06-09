@@ -6,8 +6,8 @@ function baseQuery() {
     .leftJoin('users', 'teachers.user_id', 'users.id');
 }
 
-async function findAll() {
-  return baseQuery().orderBy('teachers.full_name');
+async function findAll(schoolId) {
+  return baseQuery().where('users.school_id', schoolId).orderBy('teachers.full_name');
 }
 
 async function findById(id) {
@@ -28,4 +28,12 @@ async function update(id, data) {
   return teacher;
 }
 
-module.exports = { findAll, findById, findByUserId, create, update };
+async function remove(id) {
+  const teacher = await db('teachers').where({ id }).first();
+  if (teacher) {
+    await db('users').where({ id: teacher.user_id }).delete();
+  }
+  return db('teachers').where({ id }).delete();
+}
+
+module.exports = { findAll, findById, findByUserId, create, update, remove };
