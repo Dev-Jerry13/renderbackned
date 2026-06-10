@@ -26,7 +26,7 @@ async function login(email, password) {
     { expiresIn: env.JWT_EXPIRES }
   );
 
-  return { token, role: user.role, userId: user.id };
+  return { token, role: user.role, userId: user.id, teacherId, studentId };
 }
 
 async function refresh(token) {
