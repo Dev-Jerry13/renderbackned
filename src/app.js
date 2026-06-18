@@ -34,6 +34,7 @@ app.use('/api/assignments', auth, require('./modules/assignments/assignments.rou
 app.use('/api/timetable', auth, require('./modules/timetable/timetable.routes'));
 app.use('/api/announcements', auth, require('./modules/announcements/announcements.routes'));
 app.use('/api/fees', auth, require('./modules/fees/fees.routes'));
+app.use('/api/admin', auth, require('./modules/admin/admin.routes'));
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
