@@ -7,6 +7,7 @@ const { createAnnouncementSchema, updateAnnouncementSchema } = require('./announ
 const router = Router();
 
 router.get('/', allow('admin', 'teacher', 'student'), controller.list);
+router.get('/teacher/:teacherId', allow('admin', 'teacher'), controller.listByTeacher);
 router.post('/', allow('admin', 'teacher'), validate(createAnnouncementSchema), controller.create);
 router.put('/:id', allow('admin'), validate(updateAnnouncementSchema), controller.update);
 router.delete('/:id', allow('admin'), controller.remove);

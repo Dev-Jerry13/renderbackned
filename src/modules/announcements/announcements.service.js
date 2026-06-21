@@ -15,6 +15,10 @@ async function update(id, data) {
   return repo.update(id, data);
 }
 
+async function listByTeacher(schoolId, teacherId) {
+  return repo.findByTeacher(schoolId, teacherId);
+}
+
 async function remove(id) {
   const announcement = await repo.findById(id);
   if (!announcement) throw new ApiError(404, 'Announcement not found');
@@ -22,4 +26,4 @@ async function remove(id) {
   return { success: true };
 }
 
-module.exports = { list, create, update, remove };
+module.exports = { list, create, update, listByTeacher, remove };

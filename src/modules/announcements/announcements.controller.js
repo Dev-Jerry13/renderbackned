@@ -32,6 +32,18 @@ async function update(req, res, next) {
   }
 }
 
+async function listByTeacher(req, res, next) {
+  try {
+    const announcements = await announcementService.listByTeacher(
+      req.user.schoolId,
+      req.params.teacherId
+    );
+    res.json(announcements);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function remove(req, res, next) {
   try {
     const result = await announcementService.remove(req.params.id);
@@ -41,4 +53,4 @@ async function remove(req, res, next) {
   }
 }
 
-module.exports = { list, create, update, remove };
+module.exports = { list, create, update, listByTeacher, remove };

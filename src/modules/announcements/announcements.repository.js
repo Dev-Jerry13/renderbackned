@@ -34,8 +34,20 @@ async function update(id, data) {
   return announcement;
 }
 
+async function findByTeacher(schoolId, teacherId) {
+  return db('announcements')
+    .select(
+      'announcements.*',
+      'users.email as created_by_email'
+    )
+    .join('users', 'announcements.created_by', 'users.id')
+    .where('announcements.school_id', schoolId)
+    .where('announcements.created_by', teacherId)
+    .orderBy('announcements.created_at', 'desc');
+}
+
 async function remove(id) {
   await db('announcements').where({ id }).del();
 }
 
-module.exports = { findAll, findById, create, update, remove };
+module.exports = { findAll, findById, findByTeacher, create, update, remove };
