@@ -1,15 +1,20 @@
 const db = require('../../config/db');
 
-async function findByExamAndSubject(examId, subjectId) {
-  return db('results')
+async function findByExamAndSubject(examId, subjectId, classId) {
+  const query = db('results')
     .select(
       'results.*',
       'students.full_name as student_name',
       'students.roll_number'
     )
     .join('students', 'results.student_id', 'students.id')
-    .where({ exam_id: examId, subject_id: subjectId })
-    .orderBy('students.roll_number');
+    .where({ exam_id: examId, subject_id: subjectId });
+
+  if (classId) {
+    query.where('students.class_id', classId);
+  }
+
+  return query.orderBy('students.roll_number');
 }
 
 async function findByStudent(studentId) {

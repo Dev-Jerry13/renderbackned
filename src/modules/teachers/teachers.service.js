@@ -55,6 +55,7 @@ async function getClasses(id) {
       'classes.id as class_id',
       'classes.name as class_name',
       'classes.section',
+      'classes.class_teacher_id',
       'subjects.id as subject_id',
       'subjects.name as subject_name'
     )
@@ -63,4 +64,18 @@ async function getClasses(id) {
     .where('teacher_assignments.teacher_id', id);
 }
 
-module.exports = { list, getById, create, update, remove, getClasses };
+async function getClassTeacherClass(teacherId) {
+  const teacher = await repo.findById(teacherId);
+  if (!teacher) throw new ApiError(404, 'Teacher not found');
+  return db('classes')
+    .select(
+      'classes.*',
+      'teachers.full_name as class_teacher_name',
+      db.raw('(SELECT COUNT(*) FROM students WHERE students.class_id = classes.id) as student_count')
+    )
+    .leftJoin('teachers', 'classes.class_teacher_id', 'teachers.user_id')
+    .where('classes.class_teacher_id', teacher.user_id)
+    .first();
+}
+
+module.exports = { list, getById, create, update, remove, getClasses, getClassTeacherClass };

@@ -25,8 +25,8 @@ async function bulkEntry(data) {
   return { success: true };
 }
 
-async function getByExamAndSubject(examId, subjectId) {
-  return repo.findByExamAndSubject(examId, subjectId);
+async function getByExamAndSubject(examId, subjectId, classId) {
+  return repo.findByExamAndSubject(examId, subjectId, classId);
 }
 
 async function getByStudent(studentId) {

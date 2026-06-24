@@ -47,4 +47,27 @@ async function findByStudent(studentId) {
     .orderBy('fee_payments.payment_date', 'desc');
 }
 
-module.exports = { findAllStructures, findStructureById, createStructure, findPendingBySchool, createPayment, findByStudent };
+async function findStudentById(studentId) {
+  return db('students').select('id', 'class_id').where('id', studentId).first();
+}
+
+async function findStructuresByClass(classId) {
+  return db('fee_structures')
+    .where(function () {
+      this.where('class_id', classId).orWhereNull('class_id');
+    })
+    .orderBy('fee_structures.fee_type');
+}
+
+async function findPaymentsByStudent(studentId) {
+  return db('fee_payments')
+    .leftJoin('fee_structures', 'fee_payments.fee_structure_id', 'fee_structures.id')
+    .select(
+      'fee_payments.*',
+      'fee_structures.fee_type'
+    )
+    .where('fee_payments.student_id', studentId)
+    .orderBy('fee_payments.payment_date', 'desc');
+}
+
+module.exports = { findAllStructures, findStructureById, createStructure, findPendingBySchool, createPayment, findByStudent, findStudentById, findStructuresByClass, findPaymentsByStudent };

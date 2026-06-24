@@ -27,12 +27,27 @@ async function create(data) {
     if (!teacherUser) {
       throw new ApiError(400, 'Selected class teacher not found in users table.');
     }
+    const existing = await db('classes')
+      .where({ class_teacher_id: data.class_teacher_id })
+      .first();
+    if (existing) {
+      throw new ApiError(409, 'This teacher is already the class teacher of another class.');
+    }
   }
   return repo.create(data);
 }
 
 async function update(id, data) {
   await getById(id);
+  if (data.class_teacher_id) {
+    const existing = await db('classes')
+      .where({ class_teacher_id: data.class_teacher_id })
+      .whereNot('id', id)
+      .first();
+    if (existing) {
+      throw new ApiError(409, 'This teacher is already the class teacher of another class.');
+    }
+  }
   return repo.update(id, data);
 }
 

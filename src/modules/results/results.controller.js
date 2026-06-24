@@ -11,8 +11,8 @@ async function bulk(req, res, next) {
 
 async function list(req, res, next) {
   try {
-    const { examId, subjectId } = req.query;
-    const results = await resultService.getByExamAndSubject(examId, subjectId);
+    const { examId, subjectId, classId } = req.query;
+    const results = await resultService.getByExamAndSubject(examId, subjectId, classId);
     res.json(results);
   } catch (err) {
     next(err);

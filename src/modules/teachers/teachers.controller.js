@@ -48,6 +48,16 @@ async function getClasses(req, res, next) {
   }
 }
 
+async function getClassTeacherClass(req, res, next) {
+  try {
+    const cls = await teacherService.getClassTeacherClass(req.params.id);
+    if (!cls) return res.json(null);
+    res.json(cls);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function remove(req, res, next) {
   try {
     const result = await teacherService.remove(req.params.id);
@@ -57,4 +67,4 @@ async function remove(req, res, next) {
   }
 }
 
-module.exports = { list, create, getById, update, remove, getClasses };
+module.exports = { list, create, getById, update, remove, getClasses, getClassTeacherClass };

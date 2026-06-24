@@ -11,6 +11,7 @@ router.post('/', allow('admin'), validate(createTeacherSchema), controller.creat
 router.get('/:id', allow('admin', 'teacher'), controller.getById);
 router.put('/:id', allow('admin'), validate(updateTeacherSchema), controller.update);
 router.get('/:id/classes', allow('admin', 'teacher'), controller.getClasses);
+router.get('/:id/class-teacher-class', allow('admin', 'teacher'), controller.getClassTeacherClass);
 router.delete('/:id', allow('admin'), controller.remove);
 
 module.exports = router;
