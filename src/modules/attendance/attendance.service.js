@@ -1,20 +1,38 @@
 const ApiError = require('../../utils/ApiError');
+const db = require('../../config/db');
 const repo = require('./attendance.repository');
 
-async function markAttendance(data, userId) {
+async function markAttendance(data, user) {
+  if (user.role === 'teacher') {
+    const assignment = await db('teacher_assignments')
+      .where({ teacher_id: user.teacherId, class_id: data.classId })
+      .first();
+    if (!assignment) {
+      throw new ApiError(403, 'You are not assigned to this class');
+    }
+  }
+
   const records = data.records.map((r) => ({
     student_id: r.studentId,
     class_id: data.classId,
     date: data.date,
     status: r.status,
-    marked_by: userId,
+    marked_by: user.userId,
   }));
 
   await repo.bulkUpsert(records);
   return { success: true };
 }
 
-async function getByClassAndDate(classId, date) {
+async function getByClassAndDate(classId, date, user) {
+  if (user.role === 'teacher') {
+    const assignment = await db('teacher_assignments')
+      .where({ teacher_id: user.teacherId, class_id: classId })
+      .first();
+    if (!assignment) {
+      throw new ApiError(403, 'You are not assigned to this class');
+    }
+  }
   return repo.findByClassAndDate(classId, date);
 }
 

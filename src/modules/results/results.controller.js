@@ -2,7 +2,7 @@ const resultService = require('./results.service');
 
 async function bulk(req, res, next) {
   try {
-    const result = await resultService.bulkEntry(req.validated);
+    const result = await resultService.bulkEntry(req.validated, req.user);
     res.json(result);
   } catch (err) {
     next(err);
@@ -12,7 +12,7 @@ async function bulk(req, res, next) {
 async function list(req, res, next) {
   try {
     const { examId, subjectId, classId } = req.query;
-    const results = await resultService.getByExamAndSubject(examId, subjectId, classId);
+    const results = await resultService.getByExamAndSubject(examId, subjectId, classId, req.user);
     res.json(results);
   } catch (err) {
     next(err);
