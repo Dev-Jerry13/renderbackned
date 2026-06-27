@@ -2,9 +2,9 @@ const announcementService = require('./announcements.service');
 
 async function list(req, res, next) {
   try {
-    const { classId } = req.query;
-    const announcements = await announcementService.list(req.user.schoolId, classId);
-    res.json(announcements);
+    const { classId, page, limit } = req.query;
+    const result = await announcementService.list(req.user.schoolId, classId, { page, limit });
+    res.json(result);
   } catch (err) {
     next(err);
   }
@@ -34,11 +34,13 @@ async function update(req, res, next) {
 
 async function listByTeacher(req, res, next) {
   try {
-    const announcements = await announcementService.listByTeacher(
+    const { page, limit } = req.query;
+    const result = await announcementService.listByTeacher(
       req.user.schoolId,
-      req.params.teacherId
+      req.params.teacherId,
+      { page, limit }
     );
-    res.json(announcements);
+    res.json(result);
   } catch (err) {
     next(err);
   }

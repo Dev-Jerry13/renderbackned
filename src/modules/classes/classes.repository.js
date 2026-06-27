@@ -12,8 +12,27 @@ function baseQuery() {
     .groupBy('classes.id', 'teachers.full_name');
 }
 
-async function findAll(schoolId) {
-  return baseQuery().where('classes.school_id', schoolId).orderBy('classes.name');
+async function findAll(schoolId, pagination) {
+  const pageNum = Math.max(1, parseInt(pagination?.page, 10) || 1);
+  const limitNum = Math.min(Math.max(1, parseInt(pagination?.limit, 10) || 50), 200);
+  const offset = (pageNum - 1) * limitNum;
+
+  const [{ count }] = await db('classes')
+    .where('classes.school_id', schoolId)
+    .count('* as count')
+    .first();
+
+  const data = await baseQuery()
+    .where('classes.school_id', schoolId)
+    .orderBy('classes.name')
+    .offset(offset)
+    .limit(limitNum);
+
+  const total = parseInt(count, 10);
+  return {
+    data,
+    pagination: { page: pageNum, limit: limitNum, total, totalPages: Math.ceil(total / limitNum) },
+  };
 }
 
 async function findById(id) {

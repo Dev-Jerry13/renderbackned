@@ -1,16 +1,16 @@
 const ApiError = require('../../utils/ApiError');
 const repo = require('./fees.repository');
 
-async function listStructures(schoolId) {
-  return repo.findAllStructures(schoolId);
+async function listStructures(schoolId, pagination) {
+  return repo.findAllStructures(schoolId, pagination);
 }
 
 async function createStructure(data) {
   return repo.createStructure(data);
 }
 
-async function listPending(schoolId) {
-  return repo.findPendingBySchool(schoolId);
+async function listPending(schoolId, pagination) {
+  return repo.findPendingBySchool(schoolId, pagination);
 }
 
 async function recordPayment(data) {

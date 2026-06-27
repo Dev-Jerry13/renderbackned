@@ -1,8 +1,9 @@
 const { z } = require('zod');
+const { passwordSchema } = require('../auth/auth.schema');
 
 const createTeacherSchema = z.object({
   email: z.string().email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: passwordSchema,
   full_name: z.string().min(1, 'Full name is required'),
   phone: z.string().optional(),
 });

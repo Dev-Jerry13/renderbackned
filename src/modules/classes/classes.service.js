@@ -4,8 +4,8 @@ const repo = require('./classes.repository');
 const studentRepo = require('../students/students.repository');
 const timetableRepo = require('../timetable/timetable.repository');
 
-async function list(schoolId) {
-  return repo.findAll(schoolId);
+async function list(schoolId, pagination) {
+  return repo.findAll(schoolId, pagination);
 }
 
 async function getById(id) {

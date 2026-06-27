@@ -1,6 +1,7 @@
 const db = require('../../config/db');
+const paginate = require('../../utils/paginate');
 
-async function findAll(filters) {
+async function findAll(filters, pagination) {
   const query = db('assignments')
     .select(
       'assignments.*',
@@ -13,10 +14,10 @@ async function findAll(filters) {
     .join('subjects', 'assignments.subject_id', 'subjects.id')
     .join('classes', 'assignments.class_id', 'classes.id');
 
-  if (filters.classId) query.where('assignments.class_id', filters.classId);
-  if (filters.subjectId) query.where('assignments.subject_id', filters.subjectId);
+  if (filters?.classId) query.where('assignments.class_id', filters.classId);
+  if (filters?.subjectId) query.where('assignments.subject_id', filters.subjectId);
 
-  return query.orderBy('assignments.created_at', 'desc');
+  return paginate(query.orderBy('assignments.created_at', 'desc'), pagination);
 }
 
 async function findById(id) {

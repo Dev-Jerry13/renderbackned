@@ -1,4 +1,5 @@
 const db = require('../../config/db');
+const paginate = require('../../utils/paginate');
 
 function baseQuery() {
   return db('teachers')
@@ -6,8 +7,9 @@ function baseQuery() {
     .leftJoin('users', 'teachers.user_id', 'users.id');
 }
 
-async function findAll(schoolId) {
-  return baseQuery().where('users.school_id', schoolId).orderBy('teachers.full_name');
+async function findAll(schoolId, pagination) {
+  const query = baseQuery().where('users.school_id', schoolId).orderBy('teachers.full_name');
+  return paginate(query, pagination);
 }
 
 async function findById(id) {

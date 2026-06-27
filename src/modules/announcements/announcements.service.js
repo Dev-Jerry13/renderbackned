@@ -1,8 +1,8 @@
 const ApiError = require('../../utils/ApiError');
 const repo = require('./announcements.repository');
 
-async function list(schoolId, classId) {
-  return repo.findAll(schoolId, classId || null);
+async function list(schoolId, classId, pagination) {
+  return repo.findAll(schoolId, classId || null, pagination);
 }
 
 async function create(data) {
@@ -15,8 +15,8 @@ async function update(id, data) {
   return repo.update(id, data);
 }
 
-async function listByTeacher(schoolId, teacherId) {
-  return repo.findByTeacher(schoolId, teacherId);
+async function listByTeacher(schoolId, teacherId, pagination) {
+  return repo.findByTeacher(schoolId, teacherId, pagination);
 }
 
 async function remove(id) {

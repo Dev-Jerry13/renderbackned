@@ -2,8 +2,9 @@ const subjectService = require('./subjects.service');
 
 async function list(req, res, next) {
   try {
-    const subjects = await subjectService.list(req.user.schoolId);
-    res.json(subjects);
+    const { page, limit } = req.query;
+    const result = await subjectService.list(req.user.schoolId, { page, limit });
+    res.json(result);
   } catch (err) {
     next(err);
   }

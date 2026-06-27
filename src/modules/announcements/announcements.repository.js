@@ -1,6 +1,7 @@
 const db = require('../../config/db');
+const paginate = require('../../utils/paginate');
 
-async function findAll(schoolId, classId) {
+async function findAll(schoolId, classId, pagination) {
   const query = db('announcements')
     .select(
       'announcements.*',
@@ -17,7 +18,7 @@ async function findAll(schoolId, classId) {
     query.whereNull('announcements.class_id');
   }
 
-  return query.orderBy('announcements.created_at', 'desc');
+  return paginate(query.orderBy('announcements.created_at', 'desc'), pagination);
 }
 
 async function findById(id) {
@@ -34,8 +35,8 @@ async function update(id, data) {
   return announcement;
 }
 
-async function findByTeacher(schoolId, teacherId) {
-  return db('announcements')
+async function findByTeacher(schoolId, teacherId, pagination) {
+  const query = db('announcements')
     .select(
       'announcements.*',
       'users.email as created_by_email'
@@ -44,6 +45,7 @@ async function findByTeacher(schoolId, teacherId) {
     .where('announcements.school_id', schoolId)
     .where('announcements.created_by', teacherId)
     .orderBy('announcements.created_at', 'desc');
+  return paginate(query, pagination);
 }
 
 async function remove(id) {

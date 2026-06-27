@@ -1,3 +1,5 @@
+// ⚠️  WARNING: This seed file creates test data with hardcoded credentials.
+// DO NOT run in production. For development/testing use only.
 const bcrypt = require('bcryptjs');
 
 const HASH_ROUNDS = 12;

@@ -1,11 +1,13 @@
 const db = require('../../config/db');
+const paginate = require('../../utils/paginate');
 
-async function findAllStructures(schoolId) {
-  return db('fee_structures')
+async function findAllStructures(schoolId, pagination) {
+  const query = db('fee_structures')
     .select('fee_structures.*', 'classes.name as class_name')
     .leftJoin('classes', 'fee_structures.class_id', 'classes.id')
     .where('fee_structures.school_id', schoolId)
     .orderBy('fee_structures.fee_type');
+  return paginate(query, pagination);
 }
 
 async function findStructureById(id) {
@@ -17,8 +19,8 @@ async function createStructure(data) {
   return s;
 }
 
-async function findPendingBySchool(schoolId) {
-  return db('fee_payments')
+async function findPendingBySchool(schoolId, pagination) {
+  const query = db('fee_payments')
     .select(
       'fee_payments.*',
       'students.full_name as student_name',
@@ -29,6 +31,7 @@ async function findPendingBySchool(schoolId) {
     .where('fee_payments.school_id', schoolId)
     .where('fee_payments.status', 'pending')
     .orderBy('fee_payments.payment_date', 'desc');
+  return paginate(query, pagination);
 }
 
 async function createPayment(data) {

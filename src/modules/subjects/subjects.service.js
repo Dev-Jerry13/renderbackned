@@ -2,8 +2,8 @@ const db = require('../../config/db');
 const ApiError = require('../../utils/ApiError');
 const repo = require('./subjects.repository');
 
-async function list(schoolId) {
-  return repo.findAll(schoolId);
+async function list(schoolId, pagination) {
+  return repo.findAll(schoolId, pagination);
 }
 
 async function getById(id) {

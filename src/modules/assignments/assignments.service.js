@@ -1,8 +1,8 @@
 const ApiError = require('../../utils/ApiError');
 const repo = require('./assignments.repository');
 
-async function list(filters) {
-  return repo.findAll(filters);
+async function list(filters, pagination) {
+  return repo.findAll(filters, pagination);
 }
 
 async function create(data) {

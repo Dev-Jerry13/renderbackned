@@ -2,9 +2,9 @@ const assignmentService = require('./assignments.service');
 
 async function list(req, res, next) {
   try {
-    const { classId, subjectId } = req.query;
-    const assignments = await assignmentService.list({ classId, subjectId });
-    res.json(assignments);
+    const { classId, subjectId, page, limit } = req.query;
+    const result = await assignmentService.list({ classId, subjectId }, { page, limit });
+    res.json(result);
   } catch (err) {
     next(err);
   }

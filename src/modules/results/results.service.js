@@ -52,7 +52,7 @@ async function bulkEntry(data, user) {
   return { success: true };
 }
 
-async function getByExamAndSubject(examId, subjectId, classId, user) {
+async function getByExamAndSubject(examId, subjectId, classId, user, pagination) {
   if (user.role === 'teacher') {
     const assignment = await db('teacher_assignments')
       .where({ teacher_id: user.teacherId, subject_id: subjectId, class_id: classId })
@@ -61,7 +61,7 @@ async function getByExamAndSubject(examId, subjectId, classId, user) {
       throw new ApiError(403, 'You are not assigned to this class/subject combination');
     }
   }
-  return repo.findByExamAndSubject(examId, subjectId, classId);
+  return repo.findByExamAndSubject(examId, subjectId, classId, pagination);
 }
 
 async function getByStudent(studentId) {

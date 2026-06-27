@@ -1,3 +1,5 @@
+// ⚠️  WARNING: This seed file DELETES ALL EXISTING DATA and creates test records.
+// DO NOT run in production. It inserts hardcoded credentials (admin@school.com / password123).
 const bcrypt = require('bcryptjs');
 
 exports.seed = async (knex) => {

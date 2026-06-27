@@ -1,7 +1,9 @@
 const db = require('../../config/db');
+const paginate = require('../../utils/paginate');
 
-async function findAll(schoolId) {
-  return db('subjects').where({ school_id: schoolId }).select('*').orderBy('name');
+async function findAll(schoolId, pagination) {
+  const query = db('subjects').where({ school_id: schoolId }).select('*').orderBy('name');
+  return paginate(query, pagination);
 }
 
 async function findById(id) {

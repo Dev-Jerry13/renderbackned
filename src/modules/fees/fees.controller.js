@@ -2,8 +2,9 @@ const feeService = require('./fees.service');
 
 async function listStructures(req, res, next) {
   try {
-    const structures = await feeService.listStructures(req.user.schoolId);
-    res.json(structures);
+    const { page, limit } = req.query;
+    const result = await feeService.listStructures(req.user.schoolId, { page, limit });
+    res.json(result);
   } catch (err) {
     next(err);
   }
@@ -23,8 +24,9 @@ async function createStructure(req, res, next) {
 
 async function listPending(req, res, next) {
   try {
-    const pending = await feeService.listPending(req.user.schoolId);
-    res.json(pending);
+    const { page, limit } = req.query;
+    const result = await feeService.listPending(req.user.schoolId, { page, limit });
+    res.json(result);
   } catch (err) {
     next(err);
   }

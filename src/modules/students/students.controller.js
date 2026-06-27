@@ -2,8 +2,9 @@ const studentService = require('./students.service');
 
 async function list(req, res, next) {
   try {
-    const students = await studentService.list(req.user.schoolId);
-    res.json(students);
+    const { page, limit } = req.query;
+    const result = await studentService.list(req.user.schoolId, { page, limit });
+    res.json(result);
   } catch (err) {
     next(err);
   }
