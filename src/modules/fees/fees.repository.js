@@ -2,12 +2,17 @@ const db = require('../../config/db');
 const paginate = require('../../utils/paginate');
 
 async function findAllStructures(schoolId, pagination) {
-  const query = db('fee_structures')
-    .select('fee_structures.*', 'classes.name as class_name')
-    .leftJoin('classes', 'fee_structures.class_id', 'classes.id')
-    .where('fee_structures.school_id', schoolId)
-    .orderBy('fee_structures.fee_type');
-  return paginate(query, pagination);
+  return paginate((mode) => {
+    let q = db('fee_structures')
+      .leftJoin('classes', 'fee_structures.class_id', 'classes.id')
+      .where('fee_structures.school_id', schoolId);
+
+    if (mode === 'list') {
+      q = q.select('fee_structures.*', 'classes.name as class_name')
+        .orderBy('fee_structures.fee_type');
+    }
+    return q;
+  }, pagination);
 }
 
 async function findStructureById(id) {
@@ -20,18 +25,22 @@ async function createStructure(data) {
 }
 
 async function findPendingBySchool(schoolId, pagination) {
-  const query = db('fee_payments')
-    .select(
-      'fee_payments.*',
-      'students.full_name as student_name',
-      'fee_structures.fee_type'
-    )
-    .join('students', 'fee_payments.student_id', 'students.id')
-    .leftJoin('fee_structures', 'fee_payments.fee_structure_id', 'fee_structures.id')
-    .where('fee_payments.school_id', schoolId)
-    .where('fee_payments.status', 'pending')
-    .orderBy('fee_payments.payment_date', 'desc');
-  return paginate(query, pagination);
+  return paginate((mode) => {
+    let q = db('fee_payments')
+      .join('students', 'fee_payments.student_id', 'students.id')
+      .leftJoin('fee_structures', 'fee_payments.fee_structure_id', 'fee_structures.id')
+      .where('fee_payments.school_id', schoolId)
+      .where('fee_payments.status', 'pending');
+
+    if (mode === 'list') {
+      q = q.select(
+        'fee_payments.*',
+        'students.full_name as student_name',
+        'fee_structures.fee_type'
+      ).orderBy('fee_payments.payment_date', 'desc');
+    }
+    return q;
+  }, pagination);
 }
 
 async function createPayment(data) {

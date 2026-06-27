@@ -2,22 +2,26 @@ const db = require('../../config/db');
 const paginate = require('../../utils/paginate');
 
 async function findAll(filters, pagination) {
-  const query = db('assignments')
-    .select(
-      'assignments.*',
-      'teachers.full_name as teacher_name',
-      'subjects.name as subject_name',
-      'classes.name as class_name',
-      'classes.section'
-    )
-    .join('teachers', 'assignments.teacher_id', 'teachers.id')
-    .join('subjects', 'assignments.subject_id', 'subjects.id')
-    .join('classes', 'assignments.class_id', 'classes.id');
+  return paginate((mode) => {
+    let q = db('assignments')
+      .join('teachers', 'assignments.teacher_id', 'teachers.id')
+      .join('subjects', 'assignments.subject_id', 'subjects.id')
+      .join('classes', 'assignments.class_id', 'classes.id');
 
-  if (filters?.classId) query.where('assignments.class_id', filters.classId);
-  if (filters?.subjectId) query.where('assignments.subject_id', filters.subjectId);
+    if (filters?.classId) q = q.where('assignments.class_id', filters.classId);
+    if (filters?.subjectId) q = q.where('assignments.subject_id', filters.subjectId);
 
-  return paginate(query.orderBy('assignments.created_at', 'desc'), pagination);
+    if (mode === 'list') {
+      q = q.select(
+        'assignments.*',
+        'teachers.full_name as teacher_name',
+        'subjects.name as subject_name',
+        'classes.name as class_name',
+        'classes.section'
+      ).orderBy('assignments.created_at', 'desc');
+    }
+    return q;
+  }, pagination);
 }
 
 async function findById(id) {

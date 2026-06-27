@@ -14,8 +14,13 @@ function baseQuery() {
 }
 
 async function findAll(schoolId, pagination) {
-  const query = baseQuery().where('users.school_id', schoolId).orderBy('students.full_name');
-  return paginate(query, pagination);
+  return paginate((mode) => {
+    let q = baseQuery();
+    if (mode === 'count') q = q.clearSelect().clearOrder();
+    q = q.where('users.school_id', schoolId);
+    if (mode === 'list') q = q.orderBy('students.full_name');
+    return q;
+  }, pagination);
 }
 
 async function findById(id) {

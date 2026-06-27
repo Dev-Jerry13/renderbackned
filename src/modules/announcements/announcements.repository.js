@@ -2,23 +2,27 @@ const db = require('../../config/db');
 const paginate = require('../../utils/paginate');
 
 async function findAll(schoolId, classId, pagination) {
-  const query = db('announcements')
-    .select(
-      'announcements.*',
-      'users.email as created_by_email'
-    )
-    .join('users', 'announcements.created_by', 'users.id')
-    .where('announcements.school_id', schoolId);
+  return paginate((mode) => {
+    let q = db('announcements')
+      .join('users', 'announcements.created_by', 'users.id')
+      .where('announcements.school_id', schoolId);
 
-  if (classId) {
-    query.andWhere(function () {
-      this.where('announcements.class_id', classId).orWhereNull('announcements.class_id');
-    });
-  } else {
-    query.whereNull('announcements.class_id');
-  }
+    if (classId) {
+      q = q.andWhere(function () {
+        this.where('announcements.class_id', classId).orWhereNull('announcements.class_id');
+      });
+    } else {
+      q = q.whereNull('announcements.class_id');
+    }
 
-  return paginate(query.orderBy('announcements.created_at', 'desc'), pagination);
+    if (mode === 'list') {
+      q = q.select(
+        'announcements.*',
+        'users.email as created_by_email'
+      ).orderBy('announcements.created_at', 'desc');
+    }
+    return q;
+  }, pagination);
 }
 
 async function findById(id) {
@@ -36,16 +40,20 @@ async function update(id, data) {
 }
 
 async function findByTeacher(schoolId, teacherId, pagination) {
-  const query = db('announcements')
-    .select(
-      'announcements.*',
-      'users.email as created_by_email'
-    )
-    .join('users', 'announcements.created_by', 'users.id')
-    .where('announcements.school_id', schoolId)
-    .where('announcements.created_by', teacherId)
-    .orderBy('announcements.created_at', 'desc');
-  return paginate(query, pagination);
+  return paginate((mode) => {
+    let q = db('announcements')
+      .join('users', 'announcements.created_by', 'users.id')
+      .where('announcements.school_id', schoolId)
+      .where('announcements.created_by', teacherId);
+
+    if (mode === 'list') {
+      q = q.select(
+        'announcements.*',
+        'users.email as created_by_email'
+      ).orderBy('announcements.created_at', 'desc');
+    }
+    return q;
+  }, pagination);
 }
 
 async function remove(id) {

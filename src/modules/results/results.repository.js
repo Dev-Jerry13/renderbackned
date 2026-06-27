@@ -2,20 +2,22 @@ const db = require('../../config/db');
 const paginate = require('../../utils/paginate');
 
 async function findByExamAndSubject(examId, subjectId, classId, pagination) {
-  const query = db('results')
-    .select(
-      'results.*',
-      'students.full_name as student_name',
-      'students.roll_number'
-    )
-    .join('students', 'results.student_id', 'students.id')
-    .where({ exam_id: examId, subject_id: subjectId });
+  return paginate((mode) => {
+    let q = db('results')
+      .join('students', 'results.student_id', 'students.id')
+      .where({ exam_id: examId, subject_id: subjectId });
 
-  if (classId) {
-    query.where('students.class_id', classId);
-  }
+    if (classId) q = q.where('students.class_id', classId);
 
-  return paginate(query.orderBy('students.roll_number'), pagination);
+    if (mode === 'list') {
+      q = q.select(
+        'results.*',
+        'students.full_name as student_name',
+        'students.roll_number'
+      ).orderBy('students.roll_number');
+    }
+    return q;
+  }, pagination);
 }
 
 async function findByStudent(studentId) {
