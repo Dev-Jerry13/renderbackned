@@ -55,7 +55,7 @@ const authLimiter = rateLimit({
 app.get('/api/health', async (req, res) => {
   try {
     await db.raw('SELECT 1');
-    const [{ count: migrationCount }] = await db('knex_migrations')
+    const { count: migrationCount } = await db('knex_migrations')
       .count('* as count')
       .first();
     res.json({
@@ -65,10 +65,12 @@ app.get('/api/health', async (req, res) => {
       migrations: parseInt(migrationCount, 10),
       timestamp: new Date().toISOString(),
     });
-  } catch {
+  } catch (err) {
+    logger.error(`[${req.requestId}] Health check DB error:`, err);
     res.status(503).json({
       status: 'error',
       db: 'disconnected',
+      error: err.message,
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),
     });
