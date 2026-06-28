@@ -1,7 +1,10 @@
 const env = require('../config/env');
 
 function formatEntry(level, args) {
-  const message = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+  const message = args.map(a => {
+    if (a instanceof Error) return a.stack;
+    return typeof a === 'object' ? JSON.stringify(a) : String(a);
+  }).join(' ');
   if (env.NODE_ENV === 'production') {
     return JSON.stringify({
       timestamp: new Date().toISOString(),

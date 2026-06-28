@@ -17,7 +17,7 @@ async function findAll(schoolId, pagination) {
   const limitNum = Math.min(Math.max(1, parseInt(pagination?.limit, 10) || 50), 200);
   const offset = (pageNum - 1) * limitNum;
 
-  const [{ count }] = await db('classes')
+  const { count } = await db('classes')
     .where('classes.school_id', schoolId)
     .count('* as count')
     .first();
