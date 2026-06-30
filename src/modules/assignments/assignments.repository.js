@@ -29,7 +29,8 @@ async function findAll(filters, pagination) {
           })
           .select(
             'assignment_submissions.status as submission_status',
-            'assignment_submissions.remarks as teacher_remarks'
+            'assignment_submissions.remarks as teacher_remarks',
+            'assignment_submissions.updated_at as submission_updated_at'
           );
       }
 
