@@ -11,4 +11,6 @@ router.post('/', allow('admin', 'teacher'), validate(createAssignmentSchema), co
 router.put('/:id', allow('admin', 'teacher'), validate(updateAssignmentSchema), controller.update);
 router.delete('/:id', allow('admin', 'teacher'), controller.remove);
 
+router.use('/:assignmentId/submissions', require('./submissions.routes'));
+
 module.exports = router;

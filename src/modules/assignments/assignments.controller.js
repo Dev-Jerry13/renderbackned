@@ -3,7 +3,14 @@ const assignmentService = require('./assignments.service');
 async function list(req, res, next) {
   try {
     const { classId, subjectId, page, limit } = req.query;
-    const result = await assignmentService.list({ classId, subjectId }, { page, limit });
+    const filters = { classId, subjectId };
+    if (req.user.role === 'teacher' && req.user.teacherId) {
+      filters.teacherId = req.user.teacherId;
+    }
+    if (req.user.role === 'student' && req.user.studentId) {
+      filters.studentId = req.user.studentId;
+    }
+    const result = await assignmentService.list(filters, { page, limit });
     res.json(result);
   } catch (err) {
     next(err);

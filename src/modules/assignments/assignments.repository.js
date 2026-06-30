@@ -10,6 +10,7 @@ async function findAll(filters, pagination) {
 
     if (filters?.classId) q = q.where('assignments.class_id', filters.classId);
     if (filters?.subjectId) q = q.where('assignments.subject_id', filters.subjectId);
+    if (filters?.teacherId) q = q.where('assignments.teacher_id', filters.teacherId);
 
     if (mode === 'list') {
       q = q.select(
@@ -18,7 +19,21 @@ async function findAll(filters, pagination) {
         'subjects.name as subject_name',
         'classes.name as class_name',
         'classes.section'
-      ).orderBy('assignments.created_at', 'desc');
+      );
+
+      if (filters?.studentId) {
+        q = q
+          .leftJoin('assignment_submissions', function () {
+            this.on('assignments.id', '=', 'assignment_submissions.assignment_id')
+              .andOn('assignment_submissions.student_id', '=', db.raw('?', [filters.studentId]));
+          })
+          .select(
+            'assignment_submissions.status as submission_status',
+            'assignment_submissions.remarks as teacher_remarks'
+          );
+      }
+
+      q = q.orderBy('assignments.created_at', 'desc');
     }
     return q;
   }, pagination);
