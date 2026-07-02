@@ -33,15 +33,15 @@ async function getByClassAndDate(classId, date, user) {
       throw new ApiError(403, 'You are not assigned to this class');
     }
   }
-  return repo.findByClassAndDate(classId, date);
+  return repo.findByClassAndDate(classId, date, user.schoolId);
 }
 
-async function getByStudent(studentId, month) {
-  return repo.findByStudent(studentId, month);
+async function getByStudent(studentId, month, schoolId) {
+  return repo.findByStudent(studentId, month, schoolId);
 }
 
-async function update(id, data) {
-  const existing = await repo.findById(id);
+async function update(id, data, schoolId) {
+  const existing = await repo.findById(id, schoolId);
   if (!existing) throw new ApiError(404, 'Attendance record not found');
   return repo.update(id, data);
 }

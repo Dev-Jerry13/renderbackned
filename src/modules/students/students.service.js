@@ -7,8 +7,8 @@ async function list(schoolId, pagination) {
   return repo.findAll(schoolId, pagination);
 }
 
-async function getById(id) {
-  const student = await repo.findById(id);
+async function getById(id, schoolId) {
+  const student = await repo.findById(id, schoolId);
   if (!student) throw new ApiError(404, 'Student not found');
   return student;
 }
@@ -38,26 +38,26 @@ async function create(data) {
   };
 
   const student = await repo.create(studentData);
-  return repo.findById(student.id);
+  return repo.findById(student.id, data.school_id);
 }
 
-async function update(id, data) {
-  await getById(id);
+async function update(id, data, schoolId) {
+  await getById(id, schoolId);
   const updated = await repo.update(id, data);
-  return repo.findById(updated.id);
+  return repo.findById(updated.id, schoolId);
 }
 
-async function remove(id) {
-  await getById(id);
-  await repo.remove(id);
+async function remove(id, schoolId) {
+  await getById(id, schoolId);
+  await repo.remove(id, schoolId);
   return { message: 'Student deleted successfully' };
 }
 
-async function activate(id, isActive) {
-  const student = await getById(id);
+async function activate(id, isActive, schoolId) {
+  const student = await getById(id, schoolId);
   await repo.update(id, { is_active: isActive });
   await db('users').where({ id: student.user_id }).update({ is_active: isActive });
-  return repo.findById(id);
+  return repo.findById(id, schoolId);
 }
 
 module.exports = { list, getById, create, update, remove, activate };

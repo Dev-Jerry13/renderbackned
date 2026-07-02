@@ -27,7 +27,8 @@ async function assign(req, res, next) {
     const result = await subjectService.assign(
       req.params.id,
       req.validated.teacher_id,
-      req.validated.class_id
+      req.validated.class_id,
+      req.user.schoolId
     );
     res.status(201).json(result);
   } catch (err) {

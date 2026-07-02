@@ -9,20 +9,20 @@ async function create(data) {
   return repo.create(data);
 }
 
-async function getById(id) {
-  const exam = await repo.findById(id);
+async function getById(id, schoolId) {
+  const exam = await repo.findById(id, schoolId);
   if (!exam) throw new ApiError(404, 'Exam not found');
   return exam;
 }
 
-async function publish(id, isPublished) {
-  await getById(id);
-  return repo.update(id, { is_published: isPublished });
+async function publish(id, isPublished, schoolId) {
+  await getById(id, schoolId);
+  return repo.update(id, { is_published: isPublished }, schoolId);
 }
 
-async function remove(id) {
-  await getById(id);
-  await repo.remove(id);
+async function remove(id, schoolId) {
+  await getById(id, schoolId);
+  await repo.remove(id, schoolId);
   return { message: 'Exam deleted successfully' };
 }
 

@@ -17,13 +17,14 @@ async function recordPayment(data) {
   return repo.createPayment(data);
 }
 
-async function getByStudent(studentId) {
-  const student = await repo.findStudentById(studentId);
-  const classId = student ? student.class_id : null;
+async function getByStudent(studentId, schoolId) {
+  const student = await repo.findStudentById(studentId, schoolId);
+  if (!student) throw new ApiError(404, 'Student not found');
+  const classId = student.class_id;
 
   const [structures, payments] = await Promise.all([
-    classId ? repo.findStructuresByClass(classId) : [],
-    repo.findPaymentsByStudent(studentId),
+    classId ? repo.findStructuresByClass(classId, schoolId) : [],
+    repo.findPaymentsByStudent(studentId, schoolId),
   ]);
 
   const paidStructureIds = new Set(

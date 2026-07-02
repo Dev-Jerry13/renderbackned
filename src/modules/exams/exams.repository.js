@@ -9,8 +9,8 @@ async function findAll(schoolId, pagination) {
   }, pagination);
 }
 
-async function findById(id) {
-  return db('exams').where({ id }).first();
+async function findById(id, schoolId) {
+  return db('exams').where({ id, school_id: schoolId }).first();
 }
 
 async function create(data) {
@@ -18,13 +18,13 @@ async function create(data) {
   return exam;
 }
 
-async function update(id, data) {
-  const [exam] = await db('exams').where({ id }).update(data).returning('*');
+async function update(id, data, schoolId) {
+  const [exam] = await db('exams').where({ id, school_id: schoolId }).update(data).returning('*');
   return exam;
 }
 
-async function remove(id) {
-  return db('exams').where({ id }).delete();
+async function remove(id, schoolId) {
+  return db('exams').where({ id, school_id: schoolId }).delete();
 }
 
 module.exports = { findAll, findById, create, update, remove };

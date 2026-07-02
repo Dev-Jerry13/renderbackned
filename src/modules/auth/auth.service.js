@@ -29,9 +29,30 @@ async function login(email, password) {
   return { token, role: user.role, userId: user.id, teacherId, studentId };
 }
 
+function msToSeconds(duration) {
+  const match = duration.match(/^(\d+)([dhms])$/);
+  if (!match) return null;
+  const value = parseInt(match[1], 10);
+  const unit = match[2];
+  switch (unit) {
+    case 'd': return value * 86400;
+    case 'h': return value * 3600;
+    case 'm': return value * 60;
+    case 's': return value;
+    default: return null;
+  }
+}
+
 async function refresh(token) {
   try {
-    const decoded = jwt.verify(token, env.JWT_SECRET);
+    const decoded = jwt.verify(token, env.JWT_SECRET, { ignoreExpiration: true });
+
+    // Don't allow refreshing tokens that expired too long ago
+    const expirySeconds = msToSeconds(env.JWT_EXPIRES);
+    if (decoded.exp && expirySeconds && Date.now() / 1000 > decoded.exp + expirySeconds) {
+      throw new ApiError(401, 'Token expired too long ago, please login again');
+    }
+
     const user = await db('users').where({ id: decoded.userId, is_active: true }).first();
     if (!user) throw new ApiError(401, 'User not found');
 

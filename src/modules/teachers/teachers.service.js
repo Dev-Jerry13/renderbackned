@@ -7,8 +7,8 @@ async function list(schoolId, pagination) {
   return repo.findAll(schoolId, pagination);
 }
 
-async function getById(id) {
-  const teacher = await repo.findById(id);
+async function getById(id, schoolId) {
+  const teacher = await repo.findById(id, schoolId);
   if (!teacher) throw new ApiError(404, 'Teacher not found');
   return teacher;
 }
@@ -33,23 +33,23 @@ async function create(data) {
   };
 
   const teacher = await repo.create(teacherData);
-  return repo.findById(teacher.id);
+  return repo.findById(teacher.id, data.school_id);
 }
 
-async function update(id, data) {
-  await getById(id);
+async function update(id, data, schoolId) {
+  await getById(id, schoolId);
   const updated = await repo.update(id, data);
-  return repo.findById(updated.id);
+  return repo.findById(updated.id, schoolId);
 }
 
-async function remove(id) {
-  await getById(id);
-  await repo.remove(id);
+async function remove(id, schoolId) {
+  await getById(id, schoolId);
+  await repo.remove(id, schoolId);
   return { message: 'Teacher deleted successfully' };
 }
 
-async function getClasses(id) {
-  await getById(id);
+async function getClasses(id, schoolId) {
+  await getById(id, schoolId);
   return db('teacher_assignments')
     .select(
       'classes.id as class_id',
@@ -61,11 +61,12 @@ async function getClasses(id) {
     )
     .join('classes', 'teacher_assignments.class_id', 'classes.id')
     .join('subjects', 'teacher_assignments.subject_id', 'subjects.id')
-    .where('teacher_assignments.teacher_id', id);
+    .where('teacher_assignments.teacher_id', id)
+    .where('classes.school_id', schoolId);
 }
 
-async function getClassTeacherClass(teacherId) {
-  const teacher = await repo.findById(teacherId);
+async function getClassTeacherClass(teacherId, schoolId) {
+  const teacher = await repo.findById(teacherId, schoolId);
   if (!teacher) throw new ApiError(404, 'Teacher not found');
   return db('classes')
     .select(
@@ -75,6 +76,7 @@ async function getClassTeacherClass(teacherId) {
     )
     .leftJoin('teachers', 'classes.class_teacher_id', 'teachers.user_id')
     .where('classes.class_teacher_id', teacher.user_id)
+    .where('classes.school_id', schoolId)
     .first();
 }
 

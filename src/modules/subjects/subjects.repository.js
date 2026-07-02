@@ -9,8 +9,8 @@ async function findAll(schoolId, pagination) {
   }, pagination);
 }
 
-async function findById(id) {
-  return db('subjects').where({ id }).first();
+async function findById(id, schoolId) {
+  return db('subjects').where({ id, school_id: schoolId }).first();
 }
 
 async function create(data) {
@@ -18,7 +18,7 @@ async function create(data) {
   return subject;
 }
 
-async function findAssignments(subjectId) {
+async function findAssignments(subjectId, schoolId) {
   return db('teacher_assignments')
     .select(
       'teacher_assignments.*',
@@ -28,7 +28,8 @@ async function findAssignments(subjectId) {
     )
     .join('teachers', 'teacher_assignments.teacher_id', 'teachers.id')
     .join('classes', 'teacher_assignments.class_id', 'classes.id')
-    .where('teacher_assignments.subject_id', subjectId);
+    .where('teacher_assignments.subject_id', subjectId)
+    .where('classes.school_id', schoolId);
 }
 
 module.exports = { findAll, findById, create, findAssignments };

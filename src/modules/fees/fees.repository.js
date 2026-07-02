@@ -15,8 +15,8 @@ async function findAllStructures(schoolId, pagination) {
   }, pagination);
 }
 
-async function findStructureById(id) {
-  return db('fee_structures').where({ id }).first();
+async function findStructureById(id, schoolId) {
+  return db('fee_structures').where({ id, school_id: schoolId }).first();
 }
 
 async function createStructure(data) {
@@ -48,37 +48,49 @@ async function createPayment(data) {
   return p;
 }
 
-async function findByStudent(studentId) {
+async function findByStudent(studentId, schoolId) {
   return db('fee_payments')
     .select(
       'fee_payments.*',
       'fee_structures.fee_type'
     )
     .leftJoin('fee_structures', 'fee_payments.fee_structure_id', 'fee_structures.id')
+    .join('students', 'fee_payments.student_id', 'students.id')
+    .join('users', 'students.user_id', 'users.id')
     .where('fee_payments.student_id', studentId)
+    .where('users.school_id', schoolId)
     .orderBy('fee_payments.payment_date', 'desc');
 }
 
-async function findStudentById(studentId) {
-  return db('students').select('id', 'class_id').where('id', studentId).first();
+async function findStudentById(studentId, schoolId) {
+  return db('students')
+    .join('users', 'students.user_id', 'users.id')
+    .select('students.id', 'students.class_id')
+    .where('students.id', studentId)
+    .where('users.school_id', schoolId)
+    .first();
 }
 
-async function findStructuresByClass(classId) {
+async function findStructuresByClass(classId, schoolId) {
   return db('fee_structures')
     .where(function () {
       this.where('class_id', classId).orWhereNull('class_id');
     })
+    .where('school_id', schoolId)
     .orderBy('fee_structures.fee_type');
 }
 
-async function findPaymentsByStudent(studentId) {
+async function findPaymentsByStudent(studentId, schoolId) {
   return db('fee_payments')
     .leftJoin('fee_structures', 'fee_payments.fee_structure_id', 'fee_structures.id')
+    .join('students', 'fee_payments.student_id', 'students.id')
+    .join('users', 'students.user_id', 'users.id')
     .select(
       'fee_payments.*',
       'fee_structures.fee_type'
     )
     .where('fee_payments.student_id', studentId)
+    .where('users.school_id', schoolId)
     .orderBy('fee_payments.payment_date', 'desc');
 }
 

@@ -8,17 +8,29 @@ function baseQuery() {
 }
 
 async function findAll(schoolId, pagination) {
-  return paginate((mode) => {
+  return paginate((mode, ctx) => {
     let q = baseQuery();
     if (mode === 'count') q = q.clearSelect().clearOrder();
     q = q.where('users.school_id', schoolId);
+
+    if (ctx.search) {
+      q = q.where(function () {
+        this.where('teachers.full_name', 'iLike', `%${ctx.search}%`)
+          .orWhere('users.email', 'iLike', `%${ctx.search}%`);
+      });
+    }
+
+    if (ctx.filters?.is_active !== undefined) {
+      q = q.where('teachers.is_active', ctx.filters.is_active);
+    }
+
     if (mode === 'list') q = q.orderBy('teachers.full_name');
     return q;
   }, pagination);
 }
 
-async function findById(id) {
-  return baseQuery().where('teachers.id', id).first();
+async function findById(id, schoolId) {
+  return baseQuery().where('teachers.id', id).where('users.school_id', schoolId).first();
 }
 
 async function findByUserId(userId) {
@@ -35,8 +47,13 @@ async function update(id, data) {
   return teacher;
 }
 
-async function remove(id) {
-  const teacher = await db('teachers').where({ id }).first();
+async function remove(id, schoolId) {
+  const teacher = await db('teachers')
+    .join('users', 'teachers.user_id', 'users.id')
+    .where('teachers.id', id)
+    .where('users.school_id', schoolId)
+    .select('teachers.*')
+    .first();
   if (teacher) {
     await db('users').where({ id: teacher.user_id }).delete();
   }

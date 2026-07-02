@@ -35,8 +35,8 @@ async function findAll(schoolId, pagination) {
   };
 }
 
-async function findById(id) {
-  return baseQuery().where('classes.id', id).first();
+async function findById(id, schoolId) {
+  return baseQuery().where('classes.id', id).where('classes.school_id', schoolId).first();
 }
 
 async function create(data) {

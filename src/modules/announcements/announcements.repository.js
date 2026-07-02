@@ -2,7 +2,7 @@ const db = require('../../config/db');
 const paginate = require('../../utils/paginate');
 
 async function findAll(schoolId, classId, pagination) {
-  return paginate((mode) => {
+  return paginate((mode, ctx) => {
     let q = db('announcements')
       .join('users', 'announcements.created_by', 'users.id')
       .where('announcements.school_id', schoolId);
@@ -15,6 +15,13 @@ async function findAll(schoolId, classId, pagination) {
       q = q.whereNull('announcements.class_id');
     }
 
+    if (ctx.search) {
+      q = q.where(function () {
+        this.where('announcements.title', 'iLike', `%${ctx.search}%`)
+          .orWhere('announcements.content', 'iLike', `%${ctx.search}%`);
+      });
+    }
+
     if (mode === 'list') {
       q = q.select(
         'announcements.*',
@@ -25,8 +32,8 @@ async function findAll(schoolId, classId, pagination) {
   }, pagination);
 }
 
-async function findById(id) {
-  return db('announcements').where({ id }).first();
+async function findById(id, schoolId) {
+  return db('announcements').where({ id, school_id: schoolId }).first();
 }
 
 async function create(data) {
@@ -56,8 +63,8 @@ async function findByTeacher(schoolId, teacherId, pagination) {
   }, pagination);
 }
 
-async function remove(id) {
-  await db('announcements').where({ id }).del();
+async function remove(id, schoolId) {
+  await db('announcements').where({ id, school_id: schoolId }).del();
 }
 
 module.exports = { findAll, findById, findByTeacher, create, update, remove };

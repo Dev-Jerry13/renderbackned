@@ -3,10 +3,10 @@ const ApiError = require('../../utils/ApiError');
 const repo = require('./results.repository');
 
 async function bulkEntry(data, user) {
-  const exam = await db('exams').where({ id: data.examId }).first();
+  const exam = await db('exams').where({ id: data.examId, school_id: user.schoolId }).first();
   if (!exam) throw new ApiError(404, 'Exam not found');
 
-  const subject = await db('subjects').where({ id: data.subjectId }).first();
+  const subject = await db('subjects').where({ id: data.subjectId, school_id: user.schoolId }).first();
   if (!subject) throw new ApiError(404, 'Subject not found');
 
   if (user.role === 'teacher') {
@@ -61,11 +61,11 @@ async function getByExamAndSubject(examId, subjectId, classId, user, pagination)
       throw new ApiError(403, 'You are not assigned to this class/subject combination');
     }
   }
-  return repo.findByExamAndSubject(examId, subjectId, classId, pagination);
+  return repo.findByExamAndSubject(examId, subjectId, classId, pagination, user.schoolId);
 }
 
-async function getByStudent(studentId) {
-  return repo.findByStudent(studentId);
+async function getByStudent(studentId, schoolId) {
+  return repo.findByStudent(studentId, schoolId);
 }
 
 module.exports = { bulkEntry, getByExamAndSubject, getByStudent };

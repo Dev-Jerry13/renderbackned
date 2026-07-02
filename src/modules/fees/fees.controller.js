@@ -46,7 +46,7 @@ async function recordPayment(req, res, next) {
 
 async function getByStudent(req, res, next) {
   try {
-    const records = await feeService.getByStudent(req.params.id);
+    const records = await feeService.getByStudent(req.params.id, req.user.schoolId);
     res.json(records);
   } catch (err) {
     next(err);

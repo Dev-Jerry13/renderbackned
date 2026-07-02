@@ -8,8 +8,8 @@ async function list(schoolId, pagination) {
   return repo.findAll(schoolId, pagination);
 }
 
-async function getById(id) {
-  const cls = await repo.findById(id);
+async function getById(id, schoolId) {
+  const cls = await repo.findById(id, schoolId);
   if (!cls) throw new ApiError(404, 'Class not found');
   return cls;
 }
@@ -37,8 +37,8 @@ async function create(data) {
   return repo.create(data);
 }
 
-async function update(id, data) {
-  await getById(id);
+async function update(id, data, schoolId) {
+  await getById(id, schoolId);
   if (data.class_teacher_id) {
     const existing = await db('classes')
       .where({ class_teacher_id: data.class_teacher_id })
@@ -51,13 +51,16 @@ async function update(id, data) {
   return repo.update(id, data);
 }
 
-async function getStudents(id) {
-  await getById(id);
+async function getStudents(id, pagination = {}, schoolId) {
+  await getById(id, schoolId);
+  if (pagination.page || pagination.limit) {
+    return studentRepo.findByClassIdPaginated(id, pagination);
+  }
   return studentRepo.findByClassId(id);
 }
 
-async function getTimetable(id) {
-  await getById(id);
+async function getTimetable(id, schoolId) {
+  await getById(id, schoolId);
   return timetableRepo.findByClass(id);
 }
 

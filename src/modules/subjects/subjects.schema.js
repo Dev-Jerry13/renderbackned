@@ -1,7 +1,7 @@
 const { z } = require('zod');
 
 const createSubjectSchema = z.object({
-  name: z.string().min(1, 'Subject name is required'),
+  name: z.string().min(1, 'Subject name is required').max(100),
 });
 
 const assignSubjectSchema = z.object({

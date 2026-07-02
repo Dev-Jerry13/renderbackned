@@ -4,13 +4,13 @@ const { passwordSchema } = require('../auth/auth.schema');
 const createTeacherSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: passwordSchema,
-  full_name: z.string().min(1, 'Full name is required'),
-  phone: z.string().optional(),
+  full_name: z.string().min(1, 'Full name is required').max(100),
+  phone: z.string().max(20).optional(),
 });
 
 const updateTeacherSchema = z.object({
-  full_name: z.string().min(1).optional(),
-  phone: z.string().optional(),
+  full_name: z.string().min(1).max(100).optional(),
+  phone: z.string().max(20).optional(),
   is_active: z.boolean().optional(),
 });
 

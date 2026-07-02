@@ -24,7 +24,7 @@ async function create(req, res, next) {
 
 async function update(req, res, next) {
   try {
-    const cls = await classService.update(req.params.id, req.validated);
+    const cls = await classService.update(req.params.id, req.validated, req.user.schoolId);
     res.json(cls);
   } catch (err) {
     next(err);
@@ -33,7 +33,7 @@ async function update(req, res, next) {
 
 async function getById(req, res, next) {
   try {
-    const cls = await classService.getById(req.params.id);
+    const cls = await classService.getById(req.params.id, req.user.schoolId);
     res.json(cls);
   } catch (err) {
     next(err);
@@ -42,8 +42,9 @@ async function getById(req, res, next) {
 
 async function getStudents(req, res, next) {
   try {
-    const students = await classService.getStudents(req.params.id);
-    res.json(students);
+    const { page, limit, search } = req.query;
+    const result = await classService.getStudents(req.params.id, { page, limit, search }, req.user.schoolId);
+    res.json(result);
   } catch (err) {
     next(err);
   }
@@ -51,7 +52,7 @@ async function getStudents(req, res, next) {
 
 async function getTimetable(req, res, next) {
   try {
-    const timetable = await classService.getTimetable(req.params.id);
+    const timetable = await classService.getTimetable(req.params.id, req.user.schoolId);
     res.json(timetable);
   } catch (err) {
     next(err);

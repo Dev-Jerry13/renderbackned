@@ -6,8 +6,8 @@ async function list(schoolId, pagination) {
   return repo.findAll(schoolId, pagination);
 }
 
-async function getById(id) {
-  const subject = await repo.findById(id);
+async function getById(id, schoolId) {
+  const subject = await repo.findById(id, schoolId);
   if (!subject) throw new ApiError(404, 'Subject not found');
   return subject;
 }
@@ -16,13 +16,13 @@ async function create(data) {
   return repo.create(data);
 }
 
-async function assign(subjectId, teacherId, classId) {
-  await getById(subjectId);
+async function assign(subjectId, teacherId, classId, schoolId) {
+  await getById(subjectId, schoolId);
 
   const teacher = await db('teachers').where({ id: teacherId }).first();
   if (!teacher) throw new ApiError(404, 'Teacher not found');
 
-  const cls = await db('classes').where({ id: classId }).first();
+  const cls = await db('classes').where({ id: classId, school_id: schoolId }).first();
   if (!cls) throw new ApiError(404, 'Class not found');
 
   const existing = await db('teacher_assignments')

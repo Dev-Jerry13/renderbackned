@@ -1,12 +1,13 @@
 const db = require('../../config/db');
 const paginate = require('../../utils/paginate');
 
-async function findAll(filters, pagination) {
+async function findAll(filters, pagination, schoolId) {
   return paginate((mode) => {
     let q = db('assignments')
       .join('teachers', 'assignments.teacher_id', 'teachers.id')
       .join('subjects', 'assignments.subject_id', 'subjects.id')
-      .join('classes', 'assignments.class_id', 'classes.id');
+      .join('classes', 'assignments.class_id', 'classes.id')
+      .where('classes.school_id', schoolId);
 
     if (filters?.classId) q = q.where('assignments.class_id', filters.classId);
     if (filters?.subjectId) q = q.where('assignments.subject_id', filters.subjectId);
@@ -40,8 +41,13 @@ async function findAll(filters, pagination) {
   }, pagination);
 }
 
-async function findById(id) {
-  return db('assignments').where({ id }).first();
+async function findById(id, schoolId) {
+  return db('assignments')
+    .join('classes', 'assignments.class_id', 'classes.id')
+    .where('assignments.id', id)
+    .where('classes.school_id', schoolId)
+    .select('assignments.*')
+    .first();
 }
 
 async function create(data) {
@@ -49,12 +55,26 @@ async function create(data) {
   return assignment;
 }
 
-async function update(id, data) {
-  const [assignment] = await db('assignments').where({ id }).update(data).returning('*');
-  return assignment;
+async function update(id, data, schoolId) {
+  const [assignment] = await db('assignments')
+    .join('classes', 'assignments.class_id', 'classes.id')
+    .where('assignments.id', id)
+    .where('classes.school_id', schoolId)
+    .select('assignments.*')
+    .first();
+  if (!assignment) return null;
+  const [updated] = await db('assignments').where({ id }).update(data).returning('*');
+  return updated;
 }
 
-async function remove(id) {
+async function remove(id, schoolId) {
+  const assignment = await db('assignments')
+    .join('classes', 'assignments.class_id', 'classes.id')
+    .where('assignments.id', id)
+    .where('classes.school_id', schoolId)
+    .select('assignments.id')
+    .first();
+  if (!assignment) return;
   await db('assignments').where({ id }).del();
 }
 

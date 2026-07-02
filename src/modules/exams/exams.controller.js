@@ -24,7 +24,7 @@ async function create(req, res, next) {
 
 async function getById(req, res, next) {
   try {
-    const exam = await examService.getById(req.params.id);
+    const exam = await examService.getById(req.params.id, req.user.schoolId);
     res.json(exam);
   } catch (err) {
     next(err);
@@ -33,7 +33,7 @@ async function getById(req, res, next) {
 
 async function publish(req, res, next) {
   try {
-    const exam = await examService.publish(req.params.id, req.validated.is_published);
+    const exam = await examService.publish(req.params.id, req.validated.is_published, req.user.schoolId);
     res.json(exam);
   } catch (err) {
     next(err);
@@ -42,7 +42,7 @@ async function publish(req, res, next) {
 
 async function remove(req, res, next) {
   try {
-    const result = await examService.remove(req.params.id);
+    const result = await examService.remove(req.params.id, req.user.schoolId);
     res.json(result);
   } catch (err) {
     next(err);

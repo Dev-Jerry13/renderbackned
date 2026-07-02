@@ -1,24 +1,24 @@
 const ApiError = require('../../utils/ApiError');
 const repo = require('./assignments.repository');
 
-async function list(filters, pagination) {
-  return repo.findAll(filters, pagination);
+async function list(filters, pagination, schoolId) {
+  return repo.findAll(filters, pagination, schoolId);
 }
 
 async function create(data) {
   return repo.create(data);
 }
 
-async function update(id, data) {
-  const assignment = await repo.findById(id);
+async function update(id, data, schoolId) {
+  const assignment = await repo.findById(id, schoolId);
   if (!assignment) throw new ApiError(404, 'Assignment not found');
-  return repo.update(id, data);
+  return repo.update(id, data, schoolId);
 }
 
-async function remove(id) {
-  const assignment = await repo.findById(id);
+async function remove(id, schoolId) {
+  const assignment = await repo.findById(id, schoolId);
   if (!assignment) throw new ApiError(404, 'Assignment not found');
-  await repo.remove(id);
+  await repo.remove(id, schoolId);
   return { success: true };
 }
 

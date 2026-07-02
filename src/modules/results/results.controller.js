@@ -23,7 +23,7 @@ async function list(req, res, next) {
 
 async function getByStudent(req, res, next) {
   try {
-    const results = await resultService.getByStudent(req.params.id);
+    const results = await resultService.getByStudent(req.params.id, req.user.schoolId);
     res.json(results);
   } catch (err) {
     next(err);

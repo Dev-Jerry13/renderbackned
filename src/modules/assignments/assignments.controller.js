@@ -10,7 +10,7 @@ async function list(req, res, next) {
     if (req.user.role === 'student' && req.user.studentId) {
       filters.studentId = req.user.studentId;
     }
-    const result = await assignmentService.list(filters, { page, limit });
+    const result = await assignmentService.list(filters, { page, limit }, req.user.schoolId);
     res.json(result);
   } catch (err) {
     next(err);
@@ -35,7 +35,7 @@ async function create(req, res, next) {
 
 async function update(req, res, next) {
   try {
-    const assignment = await assignmentService.update(req.params.id, req.validated);
+    const assignment = await assignmentService.update(req.params.id, req.validated, req.user.schoolId);
     res.json(assignment);
   } catch (err) {
     next(err);
@@ -44,7 +44,7 @@ async function update(req, res, next) {
 
 async function remove(req, res, next) {
   try {
-    const result = await assignmentService.remove(req.params.id);
+    const result = await assignmentService.remove(req.params.id, req.user.schoolId);
     res.json(result);
   } catch (err) {
     next(err);

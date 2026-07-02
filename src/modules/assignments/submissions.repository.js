@@ -1,9 +1,11 @@
 const db = require('../../config/db');
 
-async function findByAssignment(assignmentId) {
+async function findByAssignment(assignmentId, schoolId) {
   const assignment = await db('assignments')
-    .where({ id: assignmentId })
-    .select('class_id')
+    .join('classes', 'assignments.class_id', 'classes.id')
+    .where('assignments.id', assignmentId)
+    .where('classes.school_id', schoolId)
+    .select('assignments.class_id')
     .first();
   if (!assignment) return [];
 
@@ -24,14 +26,19 @@ async function findByAssignment(assignmentId) {
     .orderBy('students.roll_number', 'asc');
 }
 
-async function findOne(assignmentId, studentId) {
+async function findOne(assignmentId, studentId, schoolId) {
   return db('assignment_submissions')
-    .where({ assignment_id: assignmentId, student_id: studentId })
+    .join('assignments', 'assignment_submissions.assignment_id', 'assignments.id')
+    .join('classes', 'assignments.class_id', 'classes.id')
+    .where('assignment_submissions.assignment_id', assignmentId)
+    .where('assignment_submissions.student_id', studentId)
+    .where('classes.school_id', schoolId)
+    .select('assignment_submissions.*')
     .first();
 }
 
-async function upsert(assignmentId, studentId, data) {
-  const existing = await findOne(assignmentId, studentId);
+async function upsert(assignmentId, studentId, data, schoolId) {
+  const existing = await findOne(assignmentId, studentId, schoolId);
   if (existing) {
     const [submission] = await db('assignment_submissions')
       .where({ assignment_id: assignmentId, student_id: studentId })
@@ -45,22 +52,26 @@ async function upsert(assignmentId, studentId, data) {
   return submission;
 }
 
-async function bulkUpsert(assignmentId, submissions) {
-  const now = db.fn.now();
+async function bulkUpsert(assignmentId, submissions, schoolId) {
   const results = [];
   for (const sub of submissions) {
     const result = await upsert(assignmentId, sub.student_id, {
       status: sub.status,
       remarks: sub.remarks || null,
-    });
+    }, schoolId);
     results.push(result);
   }
   return results;
 }
 
-async function getStudentSubmission(assignmentId, studentId) {
+async function getStudentSubmission(assignmentId, studentId, schoolId) {
   return db('assignment_submissions')
-    .where({ assignment_id: assignmentId, student_id: studentId })
+    .join('assignments', 'assignment_submissions.assignment_id', 'assignments.id')
+    .join('classes', 'assignments.class_id', 'classes.id')
+    .where('assignment_submissions.assignment_id', assignmentId)
+    .where('assignment_submissions.student_id', studentId)
+    .where('classes.school_id', schoolId)
+    .select('assignment_submissions.*')
     .first();
 }
 

@@ -9,6 +9,8 @@ const env = {
   CORS_ORIGINS: process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:5173,http://localhost:8081',
   RATE_LIMIT_WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000,
   RATE_LIMIT_MAX: parseInt(process.env.RATE_LIMIT_MAX, 10) || 20,
+  API_RATE_LIMIT_WINDOW_MS: parseInt(process.env.API_RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000,
+  API_RATE_LIMIT_MAX: parseInt(process.env.API_RATE_LIMIT_MAX, 10) || 100,
 };
 
 const required = ['DATABASE_URL', 'JWT_SECRET'];

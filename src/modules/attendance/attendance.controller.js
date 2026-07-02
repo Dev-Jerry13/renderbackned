@@ -22,7 +22,7 @@ async function list(req, res, next) {
 async function getByStudent(req, res, next) {
   try {
     const { month } = req.query;
-    const records = await attendanceService.getByStudent(req.params.id, month);
+    const records = await attendanceService.getByStudent(req.params.id, month, req.user.schoolId);
     res.json(records);
   } catch (err) {
     next(err);
@@ -31,7 +31,7 @@ async function getByStudent(req, res, next) {
 
 async function update(req, res, next) {
   try {
-    const record = await attendanceService.update(req.params.id, req.validated);
+    const record = await attendanceService.update(req.params.id, req.validated, req.user.schoolId);
     res.json(record);
   } catch (err) {
     next(err);
