@@ -11,6 +11,7 @@ router.post('/structures', allow('admin'), validate(createFeeStructureSchema), c
 router.get('/pending', allow('admin'), controller.listPending);
 router.post('/payments', allow('admin'), validate(recordPaymentSchema), controller.recordPayment);
 router.get('/student/:id', allow('admin', 'student'), controller.getByStudent);
+router.get('/unpaid', allow('admin'), controller.listUnpaid);
 
 router.post('/posts', allow('admin'), validate(createFeePostSchema), controller.createPost);
 router.get('/posts', allow('admin'), controller.listPosts);

@@ -53,6 +53,15 @@ async function getByStudent(req, res, next) {
   }
 }
 
+async function listUnpaid(req, res, next) {
+  try {
+    const result = await feeService.listUnpaid(req.user.schoolId);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function createPost(req, res, next) {
   try {
     const post = await feeService.createPost(req.validated, req.user.schoolId);
@@ -80,4 +89,4 @@ async function getPost(req, res, next) {
   }
 }
 
-module.exports = { listStructures, createStructure, listPending, recordPayment, getByStudent, createPost, listPosts, getPost };
+module.exports = { listStructures, createStructure, listPending, recordPayment, getByStudent, listUnpaid, createPost, listPosts, getPost };

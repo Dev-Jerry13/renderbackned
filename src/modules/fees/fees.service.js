@@ -94,6 +94,10 @@ async function getByStudent(studentId, schoolId) {
   return { posts, payments: mappedPayments };
 }
 
+async function listUnpaid(schoolId) {
+  return repo.findUnpaidBySchool(schoolId);
+}
+
 async function createPost(data, schoolId) {
   const { structures, ...postData } = data;
 
@@ -148,4 +152,4 @@ async function getPost(id, schoolId) {
   };
 }
 
-module.exports = { listStructures, createStructure, listPending, recordPayment, getByStudent, createPost, listPosts, getPost };
+module.exports = { listStructures, createStructure, listPending, recordPayment, getByStudent, listUnpaid, createPost, listPosts, getPost };

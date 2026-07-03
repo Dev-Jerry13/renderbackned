@@ -104,6 +104,7 @@ const apiModules = [
   { path: '/timetable', middleware: [auth, auditLog], module: require('./modules/timetable/timetable.routes') },
   { path: '/announcements', middleware: [auth, auditLog], module: require('./modules/announcements/announcements.routes') },
   { path: '/fees', middleware: [auth, auditLog], module: require('./modules/fees/fees.routes') },
+  { path: '/remarks', middleware: [auth, auditLog], module: require('./modules/remarks/remarks.routes') },
   { path: '/admin', middleware: [auth, auditLog], module: require('./modules/admin/admin.routes') },
 ];
 

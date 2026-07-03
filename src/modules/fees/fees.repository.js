@@ -75,6 +75,35 @@ async function findStudentById(studentId, schoolId) {
     .first();
 }
 
+async function findUnpaidBySchool(schoolId) {
+  return db('students')
+    .join('users', 'students.user_id', 'users.id')
+    .join('classes', 'students.class_id', 'classes.id')
+    .join('fee_structures', function () {
+      this.where('fee_structures.class_id', db.raw('classes.id'))
+        .orWhereNull('fee_structures.class_id');
+    })
+    .leftJoin('fee_payments', function () {
+      this.on('fee_payments.fee_structure_id', 'fee_structures.id')
+        .andOn('fee_payments.student_id', 'students.id')
+        .andOn('fee_payments.status', '=', db.raw("'paid'"));
+    })
+    .where('users.school_id', schoolId)
+    .whereNull('fee_payments.id')
+    .select(
+      'students.id as student_id',
+      'users.full_name as student_name',
+      'classes.name as class_name',
+      'fee_structures.id as fee_structure_id',
+      'fee_structures.fee_type',
+      'fee_structures.amount',
+      'fee_posts.due_date'
+    )
+    .leftJoin('fee_posts', 'fee_structures.fee_post_id', 'fee_posts.id')
+    .orderBy('users.full_name')
+    .orderBy('fee_structures.fee_type');
+}
+
 async function findStructuresByClass(classId, schoolId) {
   return db('fee_structures')
     .leftJoin('fee_posts', 'fee_structures.fee_post_id', 'fee_posts.id')
@@ -147,4 +176,5 @@ module.exports = {
   findPendingBySchool, createPayment, findByStudent,
   findStudentById, findStructuresByClass, findPaymentsByStudent,
   createPost, createPostStructures, findPostsBySchool, findPostById, findStructuresByPost,
+  findUnpaidBySchool,
 };
