@@ -14,4 +14,17 @@ const recordPaymentSchema = z.object({
   payment_mode: z.string().max(50).optional(),
 });
 
-module.exports = { createFeeStructureSchema, recordPaymentSchema };
+const feeStructureItemSchema = z.object({
+  fee_type: z.string().min(1, 'Fee type is required').max(50),
+  amount: z.number().positive('Amount must be positive'),
+  class_id: z.string().uuid().optional().nullable(),
+});
+
+const createFeePostSchema = z.object({
+  title: z.string().min(1, 'Title is required').max(200),
+  description: z.string().max(2000).optional(),
+  due_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD').optional().nullable(),
+  structures: z.array(feeStructureItemSchema).min(1, 'At least one fee structure is required'),
+});
+
+module.exports = { createFeeStructureSchema, recordPaymentSchema, createFeePostSchema };

@@ -53,4 +53,31 @@ async function getByStudent(req, res, next) {
   }
 }
 
-module.exports = { listStructures, createStructure, listPending, recordPayment, getByStudent };
+async function createPost(req, res, next) {
+  try {
+    const post = await feeService.createPost(req.validated, req.user.schoolId);
+    res.status(201).json(post);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function listPosts(req, res, next) {
+  try {
+    const posts = await feeService.listPosts(req.user.schoolId);
+    res.json(posts);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function getPost(req, res, next) {
+  try {
+    const post = await feeService.getPost(req.params.id, req.user.schoolId);
+    res.json(post);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { listStructures, createStructure, listPending, recordPayment, getByStudent, createPost, listPosts, getPost };

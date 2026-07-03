@@ -5,11 +5,15 @@ async function findAllStructures(schoolId, pagination) {
   return paginate((mode) => {
     let q = db('fee_structures')
       .leftJoin('classes', 'fee_structures.class_id', 'classes.id')
+      .leftJoin('fee_posts', 'fee_structures.fee_post_id', 'fee_posts.id')
       .where('fee_structures.school_id', schoolId);
 
     if (mode === 'list') {
-      q = q.select('fee_structures.*', 'classes.name as class_name')
-        .orderBy('fee_structures.fee_type');
+      q = q.select(
+        'fee_structures.*',
+        'classes.name as class_name',
+        'fee_posts.title as post_title'
+      ).orderBy('fee_structures.fee_type');
     }
     return q;
   }, pagination);
@@ -73,10 +77,17 @@ async function findStudentById(studentId, schoolId) {
 
 async function findStructuresByClass(classId, schoolId) {
   return db('fee_structures')
+    .leftJoin('fee_posts', 'fee_structures.fee_post_id', 'fee_posts.id')
     .where(function () {
       this.where('class_id', classId).orWhereNull('class_id');
     })
-    .where('school_id', schoolId)
+    .where('fee_structures.school_id', schoolId)
+    .select(
+      'fee_structures.*',
+      'fee_posts.title as post_title',
+      'fee_posts.description as post_description',
+      'fee_posts.due_date as post_due_date'
+    )
     .orderBy('fee_structures.fee_type');
 }
 
@@ -94,4 +105,46 @@ async function findPaymentsByStudent(studentId, schoolId) {
     .orderBy('fee_payments.payment_date', 'desc');
 }
 
-module.exports = { findAllStructures, findStructureById, createStructure, findPendingBySchool, createPayment, findByStudent, findStudentById, findStructuresByClass, findPaymentsByStudent };
+async function createPost(data) {
+  const { structures, ...postData } = data;
+  const [post] = await db('fee_posts').insert(postData).returning('*');
+  return post;
+}
+
+async function createPostStructures(structures, postId, schoolId) {
+  const rows = structures.map((s) => ({
+    school_id: schoolId,
+    fee_post_id: postId,
+    fee_type: s.fee_type,
+    amount: s.amount,
+    class_id: s.class_id || null,
+  }));
+  return db('fee_structures').insert(rows).returning('*');
+}
+
+async function findPostsBySchool(schoolId) {
+  return db('fee_posts')
+    .where('school_id', schoolId)
+    .orderBy('created_at', 'desc');
+}
+
+async function findPostById(id, schoolId) {
+  return db('fee_posts')
+    .where({ id, school_id: schoolId })
+    .first();
+}
+
+async function findStructuresByPost(postId) {
+  return db('fee_structures')
+    .leftJoin('classes', 'fee_structures.class_id', 'classes.id')
+    .where('fee_structures.fee_post_id', postId)
+    .select('fee_structures.*', 'classes.name as class_name')
+    .orderBy('fee_structures.fee_type');
+}
+
+module.exports = {
+  findAllStructures, findStructureById, createStructure,
+  findPendingBySchool, createPayment, findByStudent,
+  findStudentById, findStructuresByClass, findPaymentsByStudent,
+  createPost, createPostStructures, findPostsBySchool, findPostById, findStructuresByPost,
+};
