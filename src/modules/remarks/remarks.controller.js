@@ -1,7 +1,11 @@
+const ApiError = require('../../utils/ApiError');
 const remarkService = require('./remarks.service');
 
 async function createRemark(req, res, next) {
   try {
+    if (!req.user.teacherId) {
+      throw new ApiError(403, 'Only teachers can create remarks');
+    }
     const remark = await remarkService.createRemark(
       req.validated,
       req.user.teacherId,
@@ -52,6 +56,9 @@ async function getRemarksByStudentAndTeacher(req, res, next) {
 
 async function markRead(req, res, next) {
   try {
+    if (!req.user.studentId) {
+      throw new ApiError(403, 'Only students can mark remarks as read');
+    }
     const remark = await remarkService.markRemarkAsRead(
       req.params.id,
       req.user.studentId,
