@@ -92,14 +92,14 @@ async function findUnpaidBySchool(schoolId, filters = {}) {
     })
     .select(
       'students.id as student_id',
-      'users.full_name as student_name',
+      'students.full_name as student_name',
       'classes.name as class_name',
       'fee_structures.id as fee_structure_id',
       'fee_structures.fee_type',
       'fee_structures.amount as total_amount',
       'fee_posts.due_date'
     )
-    .orderBy('users.full_name')
+    .orderBy('students.full_name')
     .orderBy('fee_structures.fee_type');
 
   if (rows.length === 0) return [];

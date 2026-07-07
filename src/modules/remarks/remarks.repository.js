@@ -19,7 +19,7 @@ async function findByStudent(studentId, schoolId) {
     .where('student_remarks.school_id', schoolId)
     .select(
       'student_remarks.*',
-      'users.full_name as teacher_name'
+      'teachers.full_name as teacher_name'
     )
     .orderBy('student_remarks.created_at', 'desc');
 }
@@ -32,7 +32,7 @@ async function findByTeacher(teacherId, schoolId) {
     .where('student_remarks.school_id', schoolId)
     .select(
       'student_remarks.*',
-      'users.full_name as student_name'
+      'students.full_name as student_name'
     )
     .orderBy('student_remarks.created_at', 'desc');
 }
@@ -46,7 +46,7 @@ async function findByStudentAndTeacher(studentId, teacherId, schoolId) {
     .where('student_remarks.school_id', schoolId)
     .select(
       'student_remarks.*',
-      'users.full_name as student_name'
+      'students.full_name as student_name'
     )
     .orderBy('student_remarks.created_at', 'desc');
 }
