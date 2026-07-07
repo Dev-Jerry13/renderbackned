@@ -75,31 +75,58 @@ async function findStudentById(studentId, schoolId) {
     .first();
 }
 
-async function findUnpaidBySchool(schoolId) {
-  return db('students')
+async function findUnpaidBySchool(schoolId, filters = {}) {
+  const { classId, paymentFilter } = filters;
+
+  const paidSubquery = db('fee_payments')
+    .select('fee_structure_id', 'student_id')
+    .sum('amount_paid as total_paid')
+    .where('status', 'paid')
+    .groupBy('fee_structure_id', 'student_id')
+    .as('paid');
+
+  const query = db('students')
     .join('users', 'students.user_id', 'users.id')
     .join('classes', 'students.class_id', 'classes.id')
     .join('fee_structures', function () {
       this.where('fee_structures.class_id', db.raw('classes.id'))
         .orWhereNull('fee_structures.class_id');
     })
-    .leftJoin('fee_payments', function () {
-      this.on('fee_payments.fee_structure_id', 'fee_structures.id')
-        .andOn('fee_payments.student_id', 'students.id')
-        .andOn('fee_payments.status', '=', db.raw("'paid'"));
+    .leftJoin('fee_posts', 'fee_structures.fee_post_id', 'fee_posts.id')
+    .leftJoin(paidSubquery, function () {
+      this.on('paid.fee_structure_id', 'fee_structures.id')
+        .andOn('paid.student_id', 'students.id');
     })
-    .where('users.school_id', schoolId)
-    .whereNull('fee_payments.id')
+    .where('users.school_id', schoolId);
+
+  if (classId) {
+    query.where('students.class_id', classId);
+  }
+
+  if (paymentFilter === 'none') {
+    query.whereNull('paid.total_paid');
+  } else if (paymentFilter === 'partial') {
+    query.whereNotNull('paid.total_paid')
+      .whereRaw('paid.total_paid < fee_structures.amount');
+  } else {
+    query.where(function () {
+      this.whereNull('paid.total_paid')
+        .orWhereRaw('paid.total_paid < fee_structures.amount');
+    });
+  }
+
+  return query
     .select(
       'students.id as student_id',
       'users.full_name as student_name',
       'classes.name as class_name',
       'fee_structures.id as fee_structure_id',
       'fee_structures.fee_type',
-      'fee_structures.amount',
+      'fee_structures.amount as total_amount',
+      db.raw('COALESCE(fee_structures.amount - paid.total_paid, fee_structures.amount) as amount'),
+      db.raw("CASE WHEN paid.total_paid IS NULL THEN 'none' ELSE 'partial' END as payment_status"),
       'fee_posts.due_date'
     )
-    .leftJoin('fee_posts', 'fee_structures.fee_post_id', 'fee_posts.id')
     .orderBy('users.full_name')
     .orderBy('fee_structures.fee_type');
 }

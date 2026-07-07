@@ -55,7 +55,10 @@ async function getByStudent(req, res, next) {
 
 async function listUnpaid(req, res, next) {
   try {
-    const result = await feeService.listUnpaid(req.user.schoolId);
+    const filters = {};
+    if (req.query.class_id) filters.classId = req.query.class_id;
+    if (req.query.payment_filter) filters.paymentFilter = req.query.payment_filter;
+    const result = await feeService.listUnpaid(req.user.schoolId, filters);
     res.json(result);
   } catch (err) {
     next(err);

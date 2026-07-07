@@ -12,6 +12,7 @@ const recordPaymentSchema = z.object({
   amount_paid: z.number().positive('Amount must be positive'),
   payment_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD'),
   payment_mode: z.string().max(50).optional(),
+  status: z.enum(['paid', 'pending']).optional().default('paid'),
 });
 
 const feeStructureItemSchema = z.object({

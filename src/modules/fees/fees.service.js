@@ -94,8 +94,8 @@ async function getByStudent(studentId, schoolId) {
   return { posts, payments: mappedPayments };
 }
 
-async function listUnpaid(schoolId) {
-  return repo.findUnpaidBySchool(schoolId);
+async function listUnpaid(schoolId, filters = {}) {
+  return repo.findUnpaidBySchool(schoolId, filters);
 }
 
 async function createPost(data, schoolId) {
