@@ -78,44 +78,18 @@ async function findStudentById(studentId, schoolId) {
 async function findUnpaidBySchool(schoolId, filters = {}) {
   const { classId, paymentFilter } = filters;
 
-  const paidSubquery = db('fee_payments')
-    .select('fee_structure_id', 'student_id')
-    .sum('amount_paid as total_paid')
-    .where('status', 'paid')
-    .groupBy('fee_structure_id', 'student_id')
-    .as('paid');
-
-  const query = db('students')
+  const rows = await db('students')
     .join('users', 'students.user_id', 'users.id')
     .join('classes', 'students.class_id', 'classes.id')
     .join('fee_structures', function () {
-      this.where('fee_structures.class_id', db.raw('classes.id'))
-        .orWhereNull('fee_structures.class_id');
+      this.on('fee_structures.class_id', '=', 'classes.id')
+        .orOnNull('fee_structures.class_id');
     })
     .leftJoin('fee_posts', 'fee_structures.fee_post_id', 'fee_posts.id')
-    .leftJoin(paidSubquery, function () {
-      this.on('paid.fee_structure_id', 'fee_structures.id')
-        .andOn('paid.student_id', 'students.id');
+    .where('users.school_id', schoolId)
+    .modify(function (q) {
+      if (classId) q.where('students.class_id', classId);
     })
-    .where('users.school_id', schoolId);
-
-  if (classId) {
-    query.where('students.class_id', classId);
-  }
-
-  if (paymentFilter === 'none') {
-    query.whereNull('paid.total_paid');
-  } else if (paymentFilter === 'partial') {
-    query.whereNotNull('paid.total_paid')
-      .whereRaw('paid.total_paid < fee_structures.amount');
-  } else {
-    query.where(function () {
-      this.whereNull('paid.total_paid')
-        .orWhereRaw('paid.total_paid < fee_structures.amount');
-    });
-  }
-
-  return query
     .select(
       'students.id as student_id',
       'users.full_name as student_name',
@@ -123,12 +97,51 @@ async function findUnpaidBySchool(schoolId, filters = {}) {
       'fee_structures.id as fee_structure_id',
       'fee_structures.fee_type',
       'fee_structures.amount as total_amount',
-      db.raw('COALESCE(fee_structures.amount - paid.total_paid, fee_structures.amount) as amount'),
-      db.raw("CASE WHEN paid.total_paid IS NULL THEN 'none' ELSE 'partial' END as payment_status"),
       'fee_posts.due_date'
     )
     .orderBy('users.full_name')
     .orderBy('fee_structures.fee_type');
+
+  if (rows.length === 0) return [];
+
+  const paidRows = await db('fee_payments')
+    .select('fee_structure_id', 'student_id')
+    .sum('amount_paid as total_paid')
+    .where('status', 'paid')
+    .groupBy('fee_structure_id', 'student_id');
+
+  const paidMap = {};
+  for (const r of paidRows) {
+    const key = `${r.student_id}|${r.fee_structure_id}`;
+    paidMap[key] = parseFloat(r.total_paid) || 0;
+  }
+
+  return rows
+    .map((row) => {
+      const key = `${row.student_id}|${row.fee_structure_id}`;
+      const totalPaid = paidMap[key] || 0;
+      const totalAmount = parseFloat(row.total_amount);
+      const remaining = totalAmount - totalPaid;
+      const paymentStatus = totalPaid === 0 ? 'none' : 'partial';
+
+      return {
+        student_id: row.student_id,
+        student_name: row.student_name,
+        class_name: row.class_name,
+        fee_structure_id: row.fee_structure_id,
+        fee_type: row.fee_type,
+        total_amount: totalAmount,
+        amount: remaining,
+        payment_status: paymentStatus,
+        due_date: row.due_date,
+      };
+    })
+    .filter((item) => {
+      if (item.amount <= 0) return false;
+      if (paymentFilter === 'none' && item.payment_status !== 'none') return false;
+      if (paymentFilter === 'partial' && item.payment_status !== 'partial') return false;
+      return true;
+    });
 }
 
 async function findStructuresByClass(classId, schoolId) {
