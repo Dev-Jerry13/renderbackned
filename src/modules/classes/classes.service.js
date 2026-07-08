@@ -54,9 +54,9 @@ async function update(id, data, schoolId) {
 async function getStudents(id, pagination = {}, schoolId) {
   await getById(id, schoolId);
   if (pagination.page || pagination.limit) {
-    return studentRepo.findByClassIdPaginated(id, pagination);
+    return studentRepo.findByClassIdPaginated(id, pagination, schoolId);
   }
-  return studentRepo.findByClassId(id);
+  return studentRepo.findByClassId(id, schoolId);
 }
 
 async function getTimetable(id, schoolId) {
