@@ -61,7 +61,7 @@ async function getStudents(id, pagination = {}, schoolId) {
 
 async function getTimetable(id, schoolId) {
   await getById(id, schoolId);
-  return timetableRepo.findByClass(id);
+  return timetableRepo.findByClass(id, schoolId);
 }
 
 module.exports = { list, getById, create, update, getStudents, getTimetable };
