@@ -70,4 +70,37 @@ async function markRead(req, res, next) {
   }
 }
 
-module.exports = { createRemark, getStudentRemarks, getTeacherRemarks, getRemarksByStudentAndTeacher, markRead };
+async function updateRemark(req, res, next) {
+  try {
+    if (!req.user.teacherId) {
+      throw new ApiError(403, 'Only teachers can update remarks');
+    }
+    const remark = await remarkService.updateRemark(
+      req.params.id,
+      req.user.teacherId,
+      req.user.schoolId,
+      req.validated
+    );
+    res.json(remark);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function deleteRemark(req, res, next) {
+  try {
+    if (!req.user.teacherId) {
+      throw new ApiError(403, 'Only teachers can delete remarks');
+    }
+    await remarkService.deleteRemark(
+      req.params.id,
+      req.user.teacherId,
+      req.user.schoolId
+    );
+    res.status(204).end();
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { createRemark, getStudentRemarks, getTeacherRemarks, getRemarksByStudentAndTeacher, markRead, updateRemark, deleteRemark };

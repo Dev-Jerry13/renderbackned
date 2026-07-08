@@ -10,4 +10,10 @@ const createRemarkSchema = z.object({
   message: z.string().min(1, 'Message is required').max(1000, 'Message must be under 1000 characters'),
 });
 
-module.exports = { createRemarkSchema };
+const updateRemarkSchema = z.object({
+  type: z.enum(remarkTypes, { errorMap: () => ({ message: 'Type must be praise or complaint' }) }).optional(),
+  category: z.enum(remarkCategories).optional().nullable(),
+  message: z.string().min(1, 'Message is required').max(1000, 'Message must be under 1000 characters').optional(),
+});
+
+module.exports = { createRemarkSchema, updateRemarkSchema };

@@ -2,7 +2,7 @@ const { Router } = require('express');
 const validate = require('../../middleware/validate');
 const allow = require('../../middleware/rbac');
 const controller = require('./remarks.controller');
-const { createRemarkSchema } = require('./remarks.schema');
+const { createRemarkSchema, updateRemarkSchema } = require('./remarks.schema');
 
 const router = Router();
 
@@ -11,5 +11,7 @@ router.get('/student/:id', allow('admin', 'student', 'teacher'), controller.getS
 router.get('/teacher/:id', allow('admin', 'teacher'), controller.getTeacherRemarks);
 router.get('/teacher/:teacherId/student/:studentId', allow('admin', 'teacher'), controller.getRemarksByStudentAndTeacher);
 router.patch('/:id/read', allow('student'), controller.markRead);
+router.patch('/:id', allow('teacher'), validate(updateRemarkSchema), controller.updateRemark);
+router.delete('/:id', allow('teacher'), controller.deleteRemark);
 
 module.exports = router;

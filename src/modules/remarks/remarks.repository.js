@@ -59,4 +59,20 @@ async function markAsRead(id, studentId) {
   return remark;
 }
 
-module.exports = { create, findById, findByStudent, findByTeacher, findByStudentAndTeacher, markAsRead };
+async function update(id, schoolId, data) {
+  const [remark] = await db('student_remarks')
+    .where({ id, school_id: schoolId })
+    .update({ ...data, updated_at: db.fn.now() })
+    .returning('*');
+  return remark;
+}
+
+async function deleteRemark(id, schoolId) {
+  const [remark] = await db('student_remarks')
+    .where({ id, school_id: schoolId })
+    .delete()
+    .returning('*');
+  return remark;
+}
+
+module.exports = { create, findById, findByStudent, findByTeacher, findByStudentAndTeacher, markAsRead, update, deleteRemark };

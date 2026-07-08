@@ -48,4 +48,26 @@ async function markRemarkAsRead(id, studentId, schoolId) {
   return repo.markAsRead(id, studentId);
 }
 
-module.exports = { createRemark, getStudentRemarks, getTeacherRemarks, getRemarksByStudentAndTeacher, markRemarkAsRead };
+async function updateRemark(id, teacherId, schoolId, data) {
+  const remark = await repo.findById(id, schoolId);
+  if (!remark) throw new ApiError(404, 'Remark not found');
+  if (remark.teacher_id !== teacherId) {
+    throw new ApiError(403, 'You can only edit your own remarks');
+  }
+  const allowed = {};
+  if (data.type !== undefined) allowed.type = data.type;
+  if (data.category !== undefined) allowed.category = data.category;
+  if (data.message !== undefined) allowed.message = data.message;
+  return repo.update(id, schoolId, allowed);
+}
+
+async function deleteRemark(id, teacherId, schoolId) {
+  const remark = await repo.findById(id, schoolId);
+  if (!remark) throw new ApiError(404, 'Remark not found');
+  if (remark.teacher_id !== teacherId) {
+    throw new ApiError(403, 'You can only delete your own remarks');
+  }
+  return repo.deleteRemark(id, schoolId);
+}
+
+module.exports = { createRemark, getStudentRemarks, getTeacherRemarks, getRemarksByStudentAndTeacher, markRemarkAsRead, updateRemark, deleteRemark };
