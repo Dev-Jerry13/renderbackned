@@ -60,4 +60,22 @@ async function remove(id, schoolId) {
   return db('teachers').where({ id }).delete();
 }
 
-module.exports = { findAll, findById, findByUserId, create, update, remove };
+async function setSubjects(teacherId, subjectIds) {
+  await db('teacher_subjects').where({ teacher_id: teacherId }).delete();
+  if (subjectIds.length > 0) {
+    const rows = subjectIds.map((subjectId) => ({
+      teacher_id: teacherId,
+      subject_id: subjectId,
+    }));
+    await db('teacher_subjects').insert(rows);
+  }
+}
+
+async function getSubjects(teacherId) {
+  return db('teacher_subjects')
+    .select('subjects.id', 'subjects.name')
+    .join('subjects', 'teacher_subjects.subject_id', 'subjects.id')
+    .where('teacher_subjects.teacher_id', teacherId);
+}
+
+module.exports = { findAll, findById, findByUserId, create, update, remove, setSubjects, getSubjects };

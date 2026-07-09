@@ -80,4 +80,10 @@ async function getClassTeacherClass(teacherId, schoolId) {
     .first();
 }
 
-module.exports = { list, getById, create, update, remove, getClasses, getClassTeacherClass };
+async function setSubjects(id, subjectIds, schoolId) {
+  await getById(id, schoolId);
+  await repo.setSubjects(id, subjectIds);
+  return repo.getSubjects(id);
+}
+
+module.exports = { list, getById, create, update, remove, getClasses, getClassTeacherClass, setSubjects };

@@ -36,4 +36,13 @@ async function assign(req, res, next) {
   }
 }
 
-module.exports = { list, create, assign };
+async function listByClass(req, res, next) {
+  try {
+    const result = await subjectService.listByClass(req.user.schoolId);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { list, create, assign, listByClass };

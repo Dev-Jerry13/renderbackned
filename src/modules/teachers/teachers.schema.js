@@ -14,4 +14,8 @@ const updateTeacherSchema = z.object({
   is_active: z.boolean().optional(),
 });
 
-module.exports = { createTeacherSchema, updateTeacherSchema };
+const teacherSubjectsSchema = z.object({
+  subject_ids: z.array(z.string().uuid()).min(1, 'At least one subject required'),
+});
+
+module.exports = { createTeacherSchema, updateTeacherSchema, teacherSubjectsSchema };

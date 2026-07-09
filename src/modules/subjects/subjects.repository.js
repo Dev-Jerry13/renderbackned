@@ -32,4 +32,37 @@ async function findAssignments(subjectId, schoolId) {
     .where('classes.school_id', schoolId);
 }
 
-module.exports = { findAll, findById, create, findAssignments };
+async function findByClass(schoolId) {
+  const rows = await db('teacher_assignments')
+    .select(
+      'classes.id as class_id',
+      'classes.name as class_name',
+      'classes.section',
+      'subjects.id as subject_id',
+      'subjects.name as subject_name'
+    )
+    .join('classes', 'teacher_assignments.class_id', 'classes.id')
+    .join('subjects', 'teacher_assignments.subject_id', 'subjects.id')
+    .where('classes.school_id', schoolId)
+    .orderBy('classes.name')
+    .orderBy('subjects.name');
+
+  const map = {};
+  for (const row of rows) {
+    if (!map[row.class_id]) {
+      map[row.class_id] = {
+        class_id: row.class_id,
+        class_name: row.class_name,
+        section: row.section,
+        subjects: [],
+      };
+    }
+    map[row.class_id].subjects.push({
+      id: row.subject_id,
+      name: row.subject_name,
+    });
+  }
+  return Object.values(map);
+}
+
+module.exports = { findAll, findById, create, findAssignments, findByClass };

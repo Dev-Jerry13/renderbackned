@@ -39,4 +39,8 @@ async function assign(subjectId, teacherId, classId, schoolId) {
   return assignment;
 }
 
-module.exports = { list, getById, create, assign };
+async function listByClass(schoolId) {
+  return repo.findByClass(schoolId);
+}
+
+module.exports = { list, getById, create, assign, listByClass };

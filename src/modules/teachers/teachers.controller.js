@@ -70,4 +70,17 @@ async function remove(req, res, next) {
   }
 }
 
-module.exports = { list, create, getById, update, remove, getClasses, getClassTeacherClass };
+async function setSubjects(req, res, next) {
+  try {
+    const result = await teacherService.setSubjects(
+      req.params.id,
+      req.validated.subject_ids,
+      req.user.schoolId
+    );
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { list, create, getById, update, remove, getClasses, getClassTeacherClass, setSubjects };

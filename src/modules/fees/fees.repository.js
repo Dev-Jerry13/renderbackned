@@ -76,7 +76,7 @@ async function findStudentById(studentId, schoolId) {
 }
 
 async function findUnpaidBySchool(schoolId, filters = {}) {
-  const { classId, paymentFilter } = filters;
+  const { classId, paymentFilter, search } = filters;
 
   const rows = await db('students')
     .join('users', 'students.user_id', 'users.id')
@@ -89,6 +89,14 @@ async function findUnpaidBySchool(schoolId, filters = {}) {
     .where('users.school_id', schoolId)
     .modify(function (q) {
       if (classId) q.where('students.class_id', classId);
+      if (search) {
+        q.where(function () {
+          this.where('students.full_name', 'iLike', `%${search}%`)
+            .orWhere('students.parent_name', 'iLike', `%${search}%`)
+            .orWhere('students.parent_phone', 'iLike', `%${search}%`)
+            .orWhere('students.roll_number', 'iLike', `%${search}%`);
+        });
+      }
     })
     .select(
       'students.id as student_id',

@@ -58,6 +58,7 @@ async function listUnpaid(req, res, next) {
     const filters = {};
     if (req.query.class_id) filters.classId = req.query.class_id;
     if (req.query.payment_filter) filters.paymentFilter = req.query.payment_filter;
+    if (req.query.search) filters.search = req.query.search;
     const result = await feeService.listUnpaid(req.user.schoolId, filters);
     res.json(result);
   } catch (err) {

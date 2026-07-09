@@ -7,6 +7,7 @@ const { createSubjectSchema, assignSubjectSchema } = require('./subjects.schema'
 const router = Router();
 
 router.get('/', allow('admin', 'teacher', 'student'), controller.list);
+router.get('/by-class', allow('admin', 'teacher', 'student'), controller.listByClass);
 router.post('/', allow('admin'), validate(createSubjectSchema), controller.create);
 router.post('/:id/assign', allow('admin'), validate(assignSubjectSchema), controller.assign);
 
