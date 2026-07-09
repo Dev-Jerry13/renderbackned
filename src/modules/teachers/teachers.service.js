@@ -1,6 +1,7 @@
 const db = require('../../config/db');
 const ApiError = require('../../utils/ApiError');
 const repo = require('./teachers.repository');
+const timetableRepo = require('../timetable/timetable.repository');
 const { hashPassword } = require('../auth/auth.service');
 
 async function list(schoolId, pagination) {
@@ -80,10 +81,15 @@ async function getClassTeacherClass(teacherId, schoolId) {
     .first();
 }
 
+async function getTimetable(id, schoolId) {
+  await getById(id, schoolId);
+  return timetableRepo.findByTeacher(id, schoolId);
+}
+
 async function setSubjects(id, subjectIds, schoolId) {
   await getById(id, schoolId);
   await repo.setSubjects(id, subjectIds);
   return repo.getSubjects(id);
 }
 
-module.exports = { list, getById, create, update, remove, getClasses, getClassTeacherClass, setSubjects };
+module.exports = { list, getById, create, update, remove, getClasses, getClassTeacherClass, getTimetable, setSubjects };

@@ -26,4 +26,20 @@ async function remove(id, schoolId) {
   return { message: 'Exam deleted successfully' };
 }
 
-module.exports = { list, create, getById, publish, remove };
+async function getSubjects(examId, schoolId) {
+  await getById(examId, schoolId);
+  return repo.findSubjects(examId);
+}
+
+async function addSubject(examId, data, schoolId) {
+  await getById(examId, schoolId);
+  return repo.upsertSubject(examId, data);
+}
+
+async function removeSubject(examId, subjectId, schoolId) {
+  await getById(examId, schoolId);
+  await repo.removeSubject(examId, subjectId);
+  return { message: 'Subject removed from exam' };
+}
+
+module.exports = { list, create, getById, publish, remove, getSubjects, addSubject, removeSubject };

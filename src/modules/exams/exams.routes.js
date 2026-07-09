@@ -2,13 +2,16 @@ const { Router } = require('express');
 const validate = require('../../middleware/validate');
 const allow = require('../../middleware/rbac');
 const controller = require('./exams.controller');
-const { createExamSchema, publishExamSchema } = require('./exams.schema');
+const { createExamSchema, publishExamSchema, examSubjectSchema } = require('./exams.schema');
 
 const router = Router();
 
 router.get('/', allow('admin', 'teacher', 'student'), controller.list);
 router.post('/', allow('admin'), validate(createExamSchema), controller.create);
 router.get('/:id', allow('admin', 'teacher', 'student'), controller.getById);
+router.get('/:id/subjects', allow('admin', 'teacher'), controller.getSubjects);
+router.post('/:id/subjects', allow('admin'), validate(examSubjectSchema), controller.addSubject);
+router.delete('/:id/subjects/:subjectId', allow('admin'), controller.removeSubject);
 router.patch('/:id/publish', allow('admin'), validate(publishExamSchema), controller.publish);
 router.delete('/:id', allow('admin'), controller.remove);
 

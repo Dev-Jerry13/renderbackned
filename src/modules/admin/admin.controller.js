@@ -1,4 +1,5 @@
 const db = require('../../config/db');
+const ApiError = require('../../utils/ApiError');
 
 async function dashboardStats(req, res, next) {
   try {
@@ -47,4 +48,32 @@ async function dashboardStats(req, res, next) {
   }
 }
 
-module.exports = { dashboardStats };
+async function getSchoolProfile(req, res, next) {
+  try {
+    const school = await db('schools').where({ id: req.user.schoolId }).first();
+    if (!school) throw new ApiError(404, 'School not found');
+    res.json(school);
+  } catch (err) {
+    next(err);
+  }
+}
+
+async function updateSchoolProfile(req, res, next) {
+  try {
+    const allowed = ['name', 'address', 'phone', 'email', 'website', 'logo_url', 'academic_year', 'established_year'];
+    const updates = {};
+    for (const key of allowed) {
+      if (req.validated[key] !== undefined) updates[key] = req.validated[key];
+    }
+    if (Object.keys(updates).length === 0) {
+      throw new ApiError(400, 'No valid fields to update');
+    }
+    updates.updated_at = db.fn.now();
+    const [school] = await db('schools').where({ id: req.user.schoolId }).update(updates).returning('*');
+    res.json(school);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { dashboardStats, getSchoolProfile, updateSchoolProfile };

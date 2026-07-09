@@ -106,6 +106,10 @@ const apiModules = [
   { path: '/fees', middleware: [auth, auditLog], module: require('./modules/fees/fees.routes') },
   { path: '/remarks', middleware: [auth, auditLog], module: require('./modules/remarks/remarks.routes') },
   { path: '/admin', middleware: [auth, auditLog], module: require('./modules/admin/admin.routes') },
+  { path: '/reports', middleware: [auth, auditLog], module: require('./modules/reports/reports.routes') },
+  { path: '/grading', middleware: [auth, auditLog], module: require('./modules/grading/grading.routes') },
+  { path: '/holidays', middleware: [auth, auditLog], module: require('./modules/holidays/holidays.routes') },
+  { path: '/staff', middleware: [auth, auditLog], module: require('./modules/staff/staff.routes') },
 ];
 
 // Mount on both /api (legacy) and /api/v1 for versioning

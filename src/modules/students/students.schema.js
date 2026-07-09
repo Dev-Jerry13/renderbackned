@@ -24,4 +24,12 @@ const updateStudentSchema = z.object({
   is_active: z.boolean().optional(),
 });
 
-module.exports = { createStudentSchema, updateStudentSchema };
+const promoteStudentsSchema = z.object({
+  from_class_id: z.string().uuid(),
+  to_class_id: z.string().uuid(),
+  academic_year: z.string().min(1),
+  student_ids: z.array(z.string().uuid()).min(1, 'At least one student is required'),
+  status: z.enum(['promoted', 'retained']).optional().default('promoted'),
+});
+
+module.exports = { createStudentSchema, updateStudentSchema, promoteStudentsSchema };

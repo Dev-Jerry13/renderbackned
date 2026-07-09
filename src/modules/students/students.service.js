@@ -60,4 +60,40 @@ async function activate(id, isActive, schoolId) {
   return repo.findById(id, schoolId);
 }
 
-module.exports = { list, getById, create, update, remove, activate };
+async function promote(data, schoolId) {
+  const { from_class_id, to_class_id, academic_year, student_ids, status } = data;
+
+  const fromClass = await db('classes').where({ id: from_class_id, school_id: schoolId }).first();
+  if (!fromClass) throw new ApiError(404, 'Source class not found');
+
+  const toClass = await db('classes').where({ id: to_class_id, school_id: schoolId }).first();
+  if (!toClass) throw new ApiError(404, 'Target class not found');
+
+  const students = await db('students')
+    .whereIn('id', student_ids)
+    .where('class_id', from_class_id);
+
+  if (students.length !== student_ids.length) {
+    throw new ApiError(400, 'Some students not found or not in the source class');
+  }
+
+  const historyRecords = students.map((s) => ({
+    student_id: s.id,
+    class_id: to_class_id,
+    academic_year,
+    status,
+  }));
+
+  await db('student_academic_years').insert(historyRecords);
+
+  await db('students')
+    .whereIn('id', student_ids)
+    .update({ class_id: to_class_id });
+
+  return {
+    message: `Successfully promoted ${students.length} student(s) to ${toClass.name}${toClass.section ? ' - ' + toClass.section : ''}`,
+    count: students.length,
+  };
+}
+
+module.exports = { list, getById, create, update, remove, activate, promote };

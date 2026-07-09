@@ -13,6 +13,7 @@ router.put('/:id', allow('admin'), validate(updateTeacherSchema), controller.upd
 router.get('/:id/classes', allow('admin', 'teacher'), controller.getClasses);
 router.get('/:id/class-teacher-class', allow('admin', 'teacher'), controller.getClassTeacherClass);
 router.put('/:id/subjects', allow('admin'), validate(teacherSubjectsSchema), controller.setSubjects);
+router.get('/:id/timetable', allow('admin', 'teacher'), controller.getTimetable);
 router.delete('/:id', allow('admin'), controller.remove);
 
 module.exports = router;

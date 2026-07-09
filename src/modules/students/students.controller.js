@@ -62,4 +62,13 @@ async function activate(req, res, next) {
   }
 }
 
-module.exports = { list, create, getById, update, remove, activate };
+async function promote(req, res, next) {
+  try {
+    const result = await studentService.promote(req.validated, req.user.schoolId);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { list, create, getById, update, remove, activate, promote };

@@ -9,4 +9,10 @@ const publishExamSchema = z.object({
   is_published: z.boolean(),
 });
 
-module.exports = { createExamSchema, publishExamSchema };
+const examSubjectSchema = z.object({
+  subject_id: z.string().uuid(),
+  max_marks: z.number().min(1),
+  passing_marks: z.number().min(0).optional(),
+});
+
+module.exports = { createExamSchema, publishExamSchema, examSubjectSchema };

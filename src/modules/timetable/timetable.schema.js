@@ -7,6 +7,7 @@ const createTimetableSchema = z.object({
   day: z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat']),
   start_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, 'Time must be HH:MM or HH:MM:SS'),
   end_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/, 'Time must be HH:MM or HH:MM:SS'),
+  room: z.string().max(50).optional(),
 });
 
 const updateTimetableSchema = z.object({
@@ -15,6 +16,7 @@ const updateTimetableSchema = z.object({
   day: z.enum(['mon', 'tue', 'wed', 'thu', 'fri', 'sat']).optional(),
   start_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/).optional(),
   end_time: z.string().regex(/^\d{2}:\d{2}(:\d{2})?$/).optional(),
+  room: z.string().max(50).optional(),
 });
 
 module.exports = { createTimetableSchema, updateTimetableSchema };
