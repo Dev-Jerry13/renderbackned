@@ -2,7 +2,7 @@ const { z } = require('zod');
 
 const updateSubmissionSchema = z.object({
   status: z.enum(['pending', 'done', 'late']),
-  remarks: z.string().max(500).optional(),
+  remarks: z.string().max(500).nullable().optional(),
 });
 
 const bulkUpdateSubmissionsSchema = z.object({
@@ -10,7 +10,7 @@ const bulkUpdateSubmissionsSchema = z.object({
     z.object({
       student_id: z.string().uuid('Invalid student ID'),
       status: z.enum(['pending', 'done', 'late']),
-      remarks: z.string().max(500).optional(),
+      remarks: z.string().max(500).nullable().optional(),
     })
   ),
 });

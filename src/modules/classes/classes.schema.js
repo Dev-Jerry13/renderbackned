@@ -7,8 +7,8 @@ const createClassSchema = z.object({
 });
 
 const updateClassSchema = z.object({
-  name: z.string().min(1).max(50).optional(),
-  section: z.string().min(1).max(10).optional(),
+  name: z.string().min(1).max(50).nullable().optional(),
+  section: z.string().min(1).max(10).nullable().optional(),
   class_teacher_id: z.string().uuid().nullish(),
 });
 

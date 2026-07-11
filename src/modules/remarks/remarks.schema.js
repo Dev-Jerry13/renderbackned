@@ -6,14 +6,14 @@ const remarkCategories = ['academics', 'behavior', 'attendance', 'general', 'oth
 const createRemarkSchema = z.object({
   student_id: z.string().uuid('Invalid student ID'),
   type: z.enum(remarkTypes, { errorMap: () => ({ message: 'Type must be praise or complaint' }) }),
-  category: z.enum(remarkCategories).optional().nullable(),
+  category: z.enum(remarkCategories).nullable().optional(),
   message: z.string().min(1, 'Message is required').max(1000, 'Message must be under 1000 characters'),
 });
 
 const updateRemarkSchema = z.object({
-  type: z.enum(remarkTypes, { errorMap: () => ({ message: 'Type must be praise or complaint' }) }).optional(),
-  category: z.enum(remarkCategories).optional().nullable(),
-  message: z.string().min(1, 'Message is required').max(1000, 'Message must be under 1000 characters').optional(),
+  type: z.enum(remarkTypes, { errorMap: () => ({ message: 'Type must be praise or complaint' }) }).nullable().optional(),
+  category: z.enum(remarkCategories).nullable().optional(),
+  message: z.string().min(1, 'Message is required').max(1000, 'Message must be under 1000 characters').nullable().optional(),
 });
 
 module.exports = { createRemarkSchema, updateRemarkSchema };
