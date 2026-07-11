@@ -11,7 +11,7 @@ async function paginate(queryFn, options = {}, maxLimit = 200) {
     filters: typeof options.filters === 'object' && options.filters !== null ? options.filters : {},
   };
 
-  const { count } = await queryFn('count', context).count('* as count').first();
+  const { count } = await queryFn('count', context).clearSelect().count('* as count').first();
   const data = await queryFn('list', context).offset(offset).limit(limitNum);
 
   const total = parseInt(count, 10);
