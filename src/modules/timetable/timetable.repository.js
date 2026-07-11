@@ -1,35 +1,82 @@
 const db = require('../../config/db');
 
-async function findByClass(classId, schoolId) {
-  return db('timetable')
+function _baseSelect(alias) {
+  const prefix = alias ? `${alias}.` : 'timetable.';
+  return [
+    `${prefix}id`,
+    `${prefix}class_id`,
+    `${prefix}subject_id`,
+    `${prefix}teacher_id`,
+    `${prefix}day`,
+    `${prefix}start_time`,
+    `${prefix}end_time`,
+    `${prefix}room`,
+    'subjects.name as subject_name',
+    'classes.name as class_name',
+    'classes.section as class_section',
+  ];
+}
+
+function _teacherNameCol(date) {
+  if (date) {
+    return db.raw(
+      `COALESCE(pt.full_name, orig_t.full_name) as teacher_name`
+    );
+  }
+  return 'teachers.full_name as teacher_name';
+}
+
+function _applyProxyJoin(query, date) {
+  if (!date) {
+    return query
+      .join('teachers', 'timetable.teacher_id', 'teachers.id');
+  }
+  return query
+    .join('teachers as orig_t', 'timetable.teacher_id', 'orig_t.id')
+    .leftJoin('proxy_assignments as pa', function () {
+      this.on('pa.timetable_id', 'timetable.id')
+        .andOnVal('pa.date', date)
+        .andOnVal('pa.status', 'accepted');
+    })
+    .leftJoin('teachers as pt', 'pa.proxy_teacher_id', 'pt.id');
+}
+
+async function findByClass(classId, schoolId, date) {
+  let query = db('timetable')
     .select(
-      'timetable.*',
-      'subjects.name as subject_name',
-      'teachers.full_name as teacher_name',
-      'classes.name as class_name',
-      'classes.section as class_section'
+      ..._baseSelect(),
+      _teacherNameCol(date),
+      db.raw('pa.proxy_teacher_id as proxy_teacher_id'),
+      db.raw('pa.original_teacher_id as original_teacher_id'),
+      db.raw('CASE WHEN pa.id IS NOT NULL THEN true ELSE false END as has_proxy')
     )
     .join('subjects', 'timetable.subject_id', 'subjects.id')
-    .join('teachers', 'timetable.teacher_id', 'teachers.id')
-    .join('classes', 'timetable.class_id', 'classes.id')
+    .join('classes', 'timetable.class_id', 'classes.id');
+
+  query = _applyProxyJoin(query, date);
+
+  return query
     .where('timetable.class_id', classId)
     .where('classes.school_id', schoolId)
     .orderBy('timetable.day')
     .orderBy('timetable.start_time');
 }
 
-async function findByTeacher(teacherId, schoolId) {
-  return db('timetable')
+async function findByTeacher(teacherId, schoolId, date) {
+  let query = db('timetable')
     .select(
-      'timetable.*',
-      'subjects.name as subject_name',
-      'teachers.full_name as teacher_name',
-      'classes.name as class_name',
-      'classes.section as class_section'
+      ..._baseSelect(),
+      _teacherNameCol(date),
+      db.raw('pa.proxy_teacher_id as proxy_teacher_id'),
+      db.raw('pa.original_teacher_id as original_teacher_id'),
+      db.raw('CASE WHEN pa.id IS NOT NULL THEN true ELSE false END as has_proxy')
     )
     .join('subjects', 'timetable.subject_id', 'subjects.id')
-    .join('teachers', 'timetable.teacher_id', 'teachers.id')
-    .join('classes', 'timetable.class_id', 'classes.id')
+    .join('classes', 'timetable.class_id', 'classes.id');
+
+  query = _applyProxyJoin(query, date);
+
+  return query
     .where('timetable.teacher_id', teacherId)
     .where('classes.school_id', schoolId)
     .orderBy('timetable.day')

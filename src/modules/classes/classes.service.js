@@ -59,9 +59,9 @@ async function getStudents(id, pagination = {}, schoolId) {
   return studentRepo.findByClassId(id, schoolId);
 }
 
-async function getTimetable(id, schoolId) {
+async function getTimetable(id, schoolId, date) {
   await getById(id, schoolId);
-  return timetableRepo.findByClass(id, schoolId);
+  return timetableRepo.findByClass(id, schoolId, date);
 }
 
 module.exports = { list, getById, create, update, getStudents, getTimetable };

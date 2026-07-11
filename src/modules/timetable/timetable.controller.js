@@ -2,15 +2,15 @@ const timetableService = require('./timetable.service');
 
 async function list(req, res, next) {
   try {
-    const { classId, teacherId } = req.query;
+    const { classId, teacherId, date } = req.query;
     if (teacherId) {
-      const entries = await timetableService.getByTeacher(teacherId, req.user.schoolId);
+      const entries = await timetableService.getByTeacher(teacherId, req.user.schoolId, date);
       return res.json(entries);
     }
     if (!classId) {
       return res.status(400).json({ error: 'classId or teacherId query parameter is required' });
     }
-    const entries = await timetableService.getByClass(classId, req.user.schoolId);
+    const entries = await timetableService.getByClass(classId, req.user.schoolId, date);
     res.json(entries);
   } catch (err) {
     next(err);

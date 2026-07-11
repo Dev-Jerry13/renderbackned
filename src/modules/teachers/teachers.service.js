@@ -81,9 +81,9 @@ async function getClassTeacherClass(teacherId, schoolId) {
     .first();
 }
 
-async function getTimetable(id, schoolId) {
+async function getTimetable(id, schoolId, date) {
   await getById(id, schoolId);
-  return timetableRepo.findByTeacher(id, schoolId);
+  return timetableRepo.findByTeacher(id, schoolId, date);
 }
 
 async function setSubjects(id, subjectIds, schoolId) {

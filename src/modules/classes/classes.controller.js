@@ -52,7 +52,8 @@ async function getStudents(req, res, next) {
 
 async function getTimetable(req, res, next) {
   try {
-    const timetable = await classService.getTimetable(req.params.id, req.user.schoolId);
+    const { date } = req.query;
+    const timetable = await classService.getTimetable(req.params.id, req.user.schoolId, date);
     res.json(timetable);
   } catch (err) {
     next(err);

@@ -1,12 +1,12 @@
 const ApiError = require('../../utils/ApiError');
 const repo = require('./timetable.repository');
 
-async function getByClass(classId, schoolId) {
-  return repo.findByClass(classId, schoolId);
+async function getByClass(classId, schoolId, date) {
+  return repo.findByClass(classId, schoolId, date);
 }
 
-async function getByTeacher(teacherId, schoolId) {
-  return repo.findByTeacher(teacherId, schoolId);
+async function getByTeacher(teacherId, schoolId, date) {
+  return repo.findByTeacher(teacherId, schoolId, date);
 }
 
 async function _checkConflicts(data, excludeId) {

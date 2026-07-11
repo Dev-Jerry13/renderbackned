@@ -114,6 +114,7 @@ const apiModules = [
   { path: '/grading', middleware: [auth, auditLog], module: require('./modules/grading/grading.routes') },
   { path: '/holidays', middleware: [auth, auditLog], module: require('./modules/holidays/holidays.routes') },
   { path: '/staff', middleware: [auth, auditLog], module: require('./modules/staff/staff.routes') },
+  { path: '/proxy', middleware: [auth, auditLog], module: require('./modules/proxy/proxy.routes') },
 ];
 
 // Mount on both /api (legacy) and /api/v1 for versioning
