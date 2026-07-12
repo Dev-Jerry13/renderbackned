@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 
+const cors = require('cors');
 const env = require('./config/env');
 const db = require('./config/db');
 const logger = require('./utils/logger');
@@ -23,7 +24,7 @@ if (env.NODE_ENV === 'production') {
 
 app.use((req, res, next) => {
   const forwardedProto = req.headers['x-forwarded-proto'] || req.protocol;
-  if (forwardedProto === 'https' && !app.get('trust proxy')) {
+  if (forwardedProto !== 'https' && !app.get('trust proxy')) {
     return res.redirect(301, `https://${req.headers.host}${req.url}`);
   }
   next();
@@ -35,10 +36,13 @@ app.use(helmet({
 }));
 
 const allowedOrigins = env.CORS_ORIGINS.split(',').map(s => s.trim());
-app.use((origin, cb) => {
-  if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
-  cb(null, false);
-}, { credentials: true });
+app.use(cors({
+  origin: function (origin, cb) {
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    cb(null, false);
+  },
+  credentials: true,
+}));
 
 morgan.token('request-id', (req) => req.requestId);
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :request-id', {
@@ -66,6 +70,8 @@ const apiLimiter = rateLimit({
 const requestId = require('./middleware/requestId');
 const auth = require('./middleware/auth');
 const auditLog = require('./middleware/auditLog');
+
+app.use(requestId);
 
 async function healthCheck(req, res) {
   try {

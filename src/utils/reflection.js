@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 function getAllControllerFiles() {
-  const controllersDir = path.join(__dirname, 'modules');
+  const controllersDir = path.join(__dirname, '..', 'modules');
   const modules = fs.readdirSync(controllersDir);
 
   const modulesInfo = {};
@@ -28,7 +28,7 @@ function getAllControllerFiles() {
 }
 
 function getRouteConfig(moduleName, fileName) {
-  const router = require(path.join(__dirname, 'modules', moduleName, fileName));
+  const router = require(path.join(__dirname, '..', 'modules', moduleName, fileName));
   return router;
 }
 

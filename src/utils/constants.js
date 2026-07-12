@@ -1,6 +1,6 @@
 "use strict";
 
-const env = require('./env');
+const env = require('../config/env');
 
 function isProduction() {
   return env.NODE_ENV === 'production';
@@ -16,8 +16,26 @@ function isTest() {
 
 function logInProduction(message) {
   if (isProduction()) {
-    return JSON.stringify({\n      timestamp: new Date().toISOString(),\n\n      message,\n    });\n  }\n  return message;\n}
+    return JSON.stringify({
+      timestamp: new Date().toISOString(),
+      message,
+    });
+  }
+  return message;
+}
 
-function logInDevelopment(...args) {\n  const message = args.map(a => {\n    if (a instanceof Error) return a.stack;\n    return typeof a === 'object' ? JSON.stringify(a) : String(a);\n  }).join(' ');\n  return `[${message.toUpperCase()}] ${message}`;\n}
+function logInDevelopment(...args) {
+  const message = args.map(a => {
+    if (a instanceof Error) return a.stack;
+    return typeof a === 'object' ? JSON.stringify(a) : String(a);
+  }).join(' ');
+  return `[${message.toUpperCase()}] ${message}`;
+}
 
-module.exports = {\n  isProduction,\n  isDevelopment,\n  isTest,\n  logInProduction,\n  logInDevelopment,\n};
+module.exports = {
+  isProduction,
+  isDevelopment,
+  isTest,
+  logInProduction,
+  logInDevelopment,
+};

@@ -1,7 +1,12 @@
 const express = require('express');
 
 const combineMiddlewares = (...middlewareList) => {
-  return middlewareList.reduce((acc, middleware) => [...acc, ...middleware], []);
+  return middlewareList.reduce((acc, item) => {
+    if (Array.isArray(item)) {
+      return [...acc, ...item];
+    }
+    return [...acc, item];
+  }, []);
 };
 
 const createRoutes = (config) => {
@@ -9,28 +14,28 @@ const createRoutes = (config) => {
   const { path, middlewares = [], routes = [] } = config;
 
   const getSchema = (moduleName, schemaName) => {
-    const schemaModule = require(`./modules/${moduleName}/${schemaName}`);
+    const schemaModule = require(`../modules/${moduleName}/${schemaName}`);
     return schemaModule[schemaName];
   };
 
   const getController = (moduleName, methodName) => {
-    const controllerModule = require(`./modules/${moduleName}/${methodName}.controller`);
+    const controllerModule = require(`../modules/${moduleName}/${methodName}.controller`);
     return controllerModule[methodName];
   };
 
   const applyValidations = (moduleName, validations) => {
     return (validations || []).map((schemaName) => {
       const schema = getSchema(moduleName, schemaName);
-      return require('../../middleware/validate')(schema);
+      return require('../middleware/validate')(schema);
     });
   };
 
   const getMiddlewareFns = (middlewareNames) => {
     const middlewareMap = {
-      auth: require('../../middleware/auth'),
-      auditLog: require('../../middleware/auditLog'),
-      validate: require('../../middleware/validate'),
-      rbac: require('../../middleware/rbac'),
+      auth: require('../middleware/auth'),
+      auditLog: require('../middleware/auditLog'),
+      validate: require('../middleware/validate'),
+      rbac: require('../middleware/rbac'),
       authLimiter: null,
       apiLimiter: null,
     };
@@ -46,7 +51,7 @@ const createRoutes = (config) => {
     );
 
     const handlerFn = routeMiddlewares.length > 0
-      ? combineMiddlewares(...routeMiddlewares, controllerFn)
+      ? [...routeMiddlewares, controllerFn]
       : controllerFn;
 
     router[method](routePath, handlerFn);

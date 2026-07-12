@@ -40,10 +40,6 @@ async function studentStrengthReport(schoolId, query = {}) {
 async function attendanceReport(schoolId, query = {}) {
   const { class_id, start_date, end_date, group_by } = query;
 
-  const dateFilter = {};
-  if (start_date) dateFilter.start = start_date;
-  if (end_date) dateFilter.end = end_date;
-
   let q = db('attendance')
     .join('students', 'attendance.student_id', 'students.id')
     .join('classes', 'attendance.class_id', 'classes.id')

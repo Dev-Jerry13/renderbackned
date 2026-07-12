@@ -7,7 +7,8 @@ function auditLog(req, res, next) {
     const originalJson = res.json.bind(res);
     res.json = function (body) {
       const statusCode = res.statusCode;
-      logger.info(
+      const logFn = statusCode >= 500 ? logger.error : statusCode >= 400 ? logger.warn : logger.info;
+      logFn(
         `[${req.requestId}] AUDIT: userId=${req.user.userId} role=${req.user.role} ` +
         `${req.method} ${req.originalUrl} -> ${statusCode}`
       );

@@ -1,7 +1,7 @@
 const { createAsyncHandler } = require('./controller');
 
 function generateId() {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
+  return Date.now().toString(36) + Math.random().toString(36).substring(2);
 }
 
 function parsePagination(query) {
@@ -34,29 +34,36 @@ function mergeFilters(baseFilters, queryFilters) {
   return merged;
 }
 
-function buildSearchQuery(search, searchFields) {
-  if (!search) return {};
-  const orConditions = [];
-  searchFields.forEach(field => {
-    orConditions.push({ [field]: { $like: `%${search}%` } });
-  });
-  return orConditions.length ? { $or: orConditions } : {};
+function buildSearchQuery(knex, search, searchFields) {
+  if (!search) return null;
+  return function () {
+    this.where(function () {
+      searchFields.forEach((field, idx) => {
+        if (idx === 0) {
+          this.where(field, 'ilike', `%${search}%`);
+        } else {
+          this.orWhere(field, 'ilike', `%${search}%`);
+        }
+      });
+    });
+  };
 }
 
-function getFilteredQuery(query, filters = {}, searchFields = [], customSearch = null) {
-  const whereConditions = { ...filters };
+function getFilteredQuery(queryBuilder, query, filters = {}, searchFields = [], customSearch = null) {
+  if (Object.keys(filters).length > 0) {
+    queryBuilder.where(filters);
+  }
 
   if (searchFields && query.search) {
-    const searchConditions = buildSearchQuery(query.search, searchFields);
-    Object.assign(whereConditions, searchConditions);
+    const searchFn = buildSearchQuery(null, query.search, searchFields);
+    if (searchFn) {
+      queryBuilder.where(searchFn);
+    }
   }
 
   if (customSearch) {
-    const customConditions = customSearch(query);
-    Object.assign(whereConditions, customConditions);
+    customSearch(queryBuilder, query);
   }
-
-  return whereConditions;
 }
 
 function formatValidationError(errors) {
@@ -102,18 +109,16 @@ function getConfigFromEnv(config, key, defaultValue) {
 }
 
 function parseDateRange(query, dateFields) {
-  const filters = {};
-  dateFields.forEach(field => {
-    if (query[`${field}_from`]) {
-      filters[field] = filters[field] || {};
-      filters[field].$gte = query[`${field}_from`];
-    }
-    if (query[`${field}_to`]) {
-      filters[field] = filters[field] || {};
-      filters[field].$lte = query[`${field}_to`];
-    }
-  });
-  return Object.keys(filters).length ? { $and: Object.entries(filters).map(([field, operator]) => ({ [field]: operator })) } : {};
+  return function (qb) {
+    dateFields.forEach(field => {
+      if (query[`${field}_from`]) {
+        qb.where(field, '>=', query[`${field}_from`]);
+      }
+      if (query[`${field}_to`]) {
+        qb.where(field, '<=', query[`${field}_to`]);
+      }
+    });
+  };
 }
 
 module.exports = {
