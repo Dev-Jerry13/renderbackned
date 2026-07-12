@@ -1,30 +1,18 @@
+"use strict";
+
 const express = require('express');
-const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 
 const env = require('./config/env');
 const db = require('./config/db');
-const auth = require('./middleware/auth');
-const auditLog = require('./middleware/auditLog');
-const requestId = require('./middleware/requestId');
 const logger = require('./utils/logger');
 
 const app = express();
 
 if (env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
-}
-
-app.use(requestId);
-
-app.use(helmet({
-  hsts: { maxAge: 63072000, preload: true },
-  contentSecurityPolicy: false,
-}));
-
-if (env.NODE_ENV === 'production') {
   app.use((req, res, next) => {
     if (!req.secure && req.get('x-forwarded-proto') !== 'https') {
       return res.redirect(301, `https://${req.headers.host}${req.url}`);
@@ -33,14 +21,24 @@ if (env.NODE_ENV === 'production') {
   });
 }
 
-const allowedOrigins = env.CORS_ORIGINS.split(',').map(s => s.trim());
-app.use(cors({
-  origin: (origin, cb) => {
-    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
-    cb(null, false);
-  },
-  credentials: true,
+app.use((req, res, next) => {
+  const forwardedProto = req.headers['x-forwarded-proto'] || req.protocol;
+  if (forwardedProto === 'https' && !app.get('trust proxy')) {
+    return res.redirect(301, `https://${req.headers.host}${req.url}`);
+  }
+  next();
+});
+
+app.use(helmet({
+  hsts: { maxAge: 63072000, preload: true },
+  contentSecurityPolicy: false,
 }));
+
+const allowedOrigins = env.CORS_ORIGINS.split(',').map(s => s.trim());
+app.use((origin, cb) => {
+  if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+  cb(null, false);
+}, { credentials: true });
 
 morgan.token('request-id', (req) => req.requestId);
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :request-id', {
@@ -65,7 +63,9 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-app.use('/api', apiLimiter);
+const requestId = require('./middleware/requestId');
+const auth = require('./middleware/auth');
+const auditLog = require('./middleware/auditLog');
 
 async function healthCheck(req, res) {
   try {
@@ -93,7 +93,6 @@ async function healthCheck(req, res) {
 }
 
 app.get('/api/health', healthCheck);
-app.get('/api/v1/health', healthCheck);
 
 const apiModules = [
   { path: '/auth', middleware: [authLimiter], module: require('./modules/auth/auth.routes') },
@@ -117,7 +116,6 @@ const apiModules = [
   { path: '/proxy', middleware: [auth, auditLog], module: require('./modules/proxy/proxy.routes') },
 ];
 
-// Mount on both /api (legacy) and /api/v1 for versioning
 for (const mod of apiModules) {
   app.use(`/api${mod.path}`, ...mod.middleware, mod.module);
   app.use(`/api/v1${mod.path}`, ...mod.middleware, mod.module);
@@ -134,11 +132,13 @@ app.use((err, req, res, next) => {
     : env.NODE_ENV === 'production'
       ? 'Internal server error'
       : err.message;
+
   if (statusCode === 500) {
     logger.error(`[${req.requestId}] Unhandled error:`, err);
   } else {
     logger.warn(`[${req.requestId}] ${statusCode} - ${err.message}`);
   }
+
   res.status(statusCode).json({ error: message });
 });
 

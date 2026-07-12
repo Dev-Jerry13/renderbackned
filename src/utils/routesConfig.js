@@ -1,0 +1,220 @@
+const express = require('express');
+
+const routesConfig = {
+  auth: {
+    path: '/auth',
+    middleware: ['authLimiter'],
+    routes: [
+      { method: 'post', path: '/login', handler: 'login', schemas: ['loginSchema'] },
+      { method: 'post', path: '/refresh', handler: 'refresh', schemas: ['refreshSchema'] },
+      { method: 'post', path: '/change-password', handler: 'changePassword', schemas: ['changePasswordSchema'] },
+    ],
+  },
+  students: {
+    path: '/students',
+    middleware: ['auth', 'auditLog'],
+    routes: [
+      { method: 'get', path: '/', handler: 'list' },
+      { method: 'post', path: '/', handler: 'create', schemas: ['createStudentSchema'] },
+      { method: 'post', path: '/promote', handler: 'promote', schemas: ['promoteStudentsSchema'] },
+      { method: 'get', path: '/:id', handler: 'getById' },
+      { method: 'put', path: '/:id', handler: 'update', schemas: ['updateStudentSchema'] },
+      { method: 'delete', path: '/:id', handler: 'remove' },
+      { method: 'patch', path: '/:id/activate', handler: 'activate' },
+    ],
+  },
+  teachers: {
+    path: '/teachers',
+    middleware: ['auth', 'auditLog'],
+    routes: [
+      { method: 'get', path: '/', handler: 'list' },
+      { method: 'post', path: '/', handler: 'create', schemas: ['createTeacherSchema'] },
+      { method: 'get', path: '/:id', handler: 'getById' },
+      { method: 'put', path: '/:id', handler: 'update', schemas: ['updateTeacherSchema'] },
+      { method: 'get', path: '/:id/classes', handler: 'getClasses' },
+      { method: 'get', path: '/:id/class-teacher-class', handler: 'getClassTeacherClass' },
+      { method: 'put', path: '/:id/subjects', handler: 'setSubjects', schemas: ['teacherSubjectsSchema'] },
+      { method: 'get', path: '/:id/timetable', handler: 'getTimetable' },
+      { method: 'delete', path: '/:id', handler: 'remove' },
+    ],
+  },
+  classes: {
+    path: '/classes',
+    middleware: ['auth', 'auditLog'],
+    routes: [
+      { method: 'get', path: '/', handler: 'list' },
+      { method: 'post', path: '/', handler: 'create', schemas: ['createClassSchema'] },
+      { method: 'get', path: '/:id', handler: 'getById' },
+      { method: 'put', path: '/:id', handler: 'update', schemas: ['updateClassSchema'] },
+      { method: 'get', path: '/:id/students', handler: 'getStudents' },
+      { method: 'get', path: '/:id/timetable', handler: 'getTimetable' },
+    ],
+  },
+  subjects: {
+    path: '/subjects',
+    middleware: ['auth', 'auditLog'],
+    routes: [
+      { method: 'get', path: '/', handler: 'list' },
+      { method: 'get', path: '/by-class', handler: 'listByClass' },
+      { method: 'post', path: '/', handler: 'create', schemas: ['createSubjectSchema'] },
+      { method: 'post', path: '/:id/assign', handler: 'assign', schemas: ['assignSubjectSchema'] },
+    ],
+  },
+  attendance: {
+    path: '/attendance',
+    middleware: ['auth', 'auditLog'],
+    routes: [
+      { method: 'post', path: '/mark', handler: 'mark', schemas: ['markAttendanceSchema'] },
+      { method: 'get', path: '/', handler: 'list' },
+      { method: 'get', path: '/student/:id', handler: 'getByStudent' },
+      { method: 'put', path: '/:id', handler: 'update', schemas: ['updateAttendanceSchema'] },
+    ],
+  },
+  exams: {
+    path: '/exams',
+    middleware: ['auth', 'auditLog'],
+    routes: [
+      { method: 'get', path: '/', handler: 'list' },
+      { method: 'post', path: '/', handler: 'create', schemas: ['createExamSchema'] },
+      { method: 'get', path: '/:id', handler: 'getById' },
+      { method: 'get', path: '/:id/subjects', handler: 'getSubjects' },
+      { method: 'post', path: '/:id/subjects', handler: 'addSubject', schemas: ['examSubjectSchema'] },
+      { method: 'delete', path: '/:id/subjects/:subjectId', handler: 'removeSubject' },
+      { method: 'patch', path: '/:id/publish', handler: 'publish', schemas: ['publishExamSchema'] },
+      { method: 'delete', path: '/:id', handler: 'remove' },
+    ],
+  },
+  results: {
+    path: '/results',
+    middleware: ['auth', 'auditLog'],
+    routes: [
+      { method: 'post', path: '/bulk', handler: 'bulk', schemas: ['bulkResultSchema'] },
+      { method: 'get', path: '/', handler: 'list' },
+      { method: 'get', path: '/student/:id', handler: 'getByStudent' },
+    ],
+  },
+  assignments: {
+    path: '/assignments',
+    middleware: ['auth', 'auditLog'],
+    routes: [
+      { method: 'get', path: '/', handler: 'list' },
+      { method: 'post', path: '/', handler: 'create', schemas: ['createAssignmentSchema'] },
+      { method: 'put', path: '/:id', handler: 'update', schemas: ['updateAssignmentSchema'] },
+      { method: 'delete', path: '/:id', handler: 'remove' },
+    ],
+  },
+  timetable: {
+    path: '/timetable',
+    middleware: ['auth', 'auditLog'],
+    routes: [
+      { method: 'get', path: '/', handler: 'list' },
+      { method: 'post', path: '/', handler: 'create', schemas: ['createTimetableSchema'] },
+      { method: 'put', path: '/:id', handler: 'update', schemas: ['updateTimetableSchema'] },
+      { method: 'delete', path: '/:id', handler: 'remove' },
+    ],
+  },
+  announcements: {
+    path: '/announcements',
+    middleware: ['auth', 'auditLog'],
+    routes: [],
+  },
+  fees: {
+    path: '/fees',
+    middleware: ['auth', 'auditLog'],
+    routes: [
+      { method: 'get', path: '/structures', handler: 'listStructures' },
+      { method: 'post', path: '/structures', handler: 'createStructure', schemas: ['createFeeStructureSchema'] },
+      { method: 'get', path: '/pending', handler: 'listPending' },
+      { method: 'post', path: '/payments', handler: 'recordPayment', schemas: ['recordPaymentSchema'] },
+      { method: 'get', path: '/student/:id', handler: 'getByStudent' },
+      { method: 'get', path: '/unpaid', handler: 'listUnpaid' },
+      { method: 'post', path: '/posts', handler: 'createPost', schemas: ['createFeePostSchema'] },
+      { method: 'get', path: '/posts', handler: 'listPosts' },
+      { method: 'get', path: '/posts/:id', handler: 'getPost' },
+    ],
+  },
+  remarks: {
+    path: '/remarks',
+    middleware: ['auth', 'auditLog'],
+    routes: [
+      { method: 'post', path: '/', handler: 'createRemark', schemas: ['createRemarkSchema'] },
+      { method: 'get', path: '/student/:id', handler: 'getStudentRemarks' },
+      { method: 'get', path: '/teacher/:id', handler: 'getTeacherRemarks' },
+      { method: 'get', path: '/teacher/:teacherId/student/:studentId', handler: 'getRemarksByStudentAndTeacher' },
+      { method: 'patch', path: '/:id/read', handler: 'markRead' },
+      { method: 'patch', path: '/:id', handler: 'updateRemark', schemas: ['updateRemarkSchema'] },
+      { method: 'delete', path: '/:id', handler: 'deleteRemark' },
+    ],
+  },
+  admin: {
+    path: '/admin',
+    middleware: ['auth', 'auditLog'],
+    routes: [
+      { method: 'get', path: '/dashboard/stats', handler: 'dashboardStats' },
+      { method: 'get', path: '/school', handler: 'getSchoolProfile' },
+      { method: 'put', path: '/school', handler: 'updateSchoolProfile', schemas: ['updateSchoolSchema'] },
+    ],
+  },
+  reports: {
+    path: '/reports',
+    middleware: ['auth', 'auditLog'],
+    routes: [
+      { method: 'get', path: '/student-strength', handler: 'studentStrength' },
+      { method: 'get', path: '/attendance', handler: 'attendance' },
+      { method: 'get', path: '/fee-collection', handler: 'feeCollection' },
+      { method: 'get', path: '/teacher-workload', handler: 'teacherWorkload' },
+      { method: 'get', path: '/admissions', handler: 'admissions' },
+    ],
+  },
+  grading: {
+    path: '/grading',
+    middleware: ['auth', 'auditLog'],
+    routes: [
+      { method: 'get', path: '/', handler: 'list' },
+      { method: 'get', path: '/find-grade', handler: 'findGrade' },
+      { method: 'get', path: '/:id', handler: 'getById' },
+      { method: 'post', path: '/', handler: 'create', schemas: ['createGradingSystemSchema'] },
+      { method: 'put', path: '/:id', handler: 'update', schemas: ['updateGradingSystemSchema'] },
+      { method: 'delete', path: '/:id', handler: 'remove' },
+    ],
+  },
+  holidays: {
+    path: '/holidays',
+    middleware: ['auth', 'auditLog'],
+    routes: [
+      { method: 'get', path: '/', handler: 'list' },
+      { method: 'post', path: '/', handler: 'create', schemas: ['createHolidaySchema'] },
+      { method: 'get', path: '/:id', handler: 'getById' },
+      { method: 'put', path: '/:id', handler: 'update', schemas: ['updateHolidaySchema'] },
+      { method: 'delete', path: '/:id', handler: 'remove' },
+    ],
+  },
+  staff: {
+    path: '/staff',
+    middleware: ['auth', 'auditLog'],
+    routes: [
+      { method: 'get', path: '/', handler: 'list' },
+      { method: 'post', path: '/', handler: 'create', schemas: ['createStaffSchema'] },
+      { method: 'get', path: '/departments', handler: 'getDepartments' },
+      { method: 'get', path: '/:id', handler: 'getById' },
+      { method: 'put', path: '/:id', handler: 'update', schemas: ['updateStaffSchema'] },
+      { method: 'delete', path: '/:id', handler: 'remove' },
+    ],
+  },
+  proxy: {
+    path: '/proxy',
+    middleware: ['auth', 'auditLog'],
+    routes: [
+      { method: 'post', path: '/assign', handler: 'assign', schemas: ['assignProxySchema'] },
+      { method: 'patch', path: '/:id/respond', handler: 'respond', schemas: ['respondProxySchema'] },
+      { method: 'delete', path: '/:id', handler: 'cancel' },
+      { method: 'get', path: '/my', handler: 'myProxies' },
+      { method: 'get', path: '/pending', handler: 'pendingRequests' },
+      { method: 'get', path: '/today', handler: 'todayForClass' },
+      { method: 'get', path: '/available', handler: 'available' },
+      { method: 'get', path: '/admin/all', handler: 'adminList' },
+    ],
+  },
+};
+
+module.exports = { routesConfig };
