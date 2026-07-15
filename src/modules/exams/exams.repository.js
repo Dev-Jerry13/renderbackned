@@ -3,8 +3,19 @@ const paginate = require('../../utils/paginate');
 
 async function findAll(schoolId, pagination) {
   return paginate((mode) => {
-    let q = db('exams').where({ school_id: schoolId });
-    if (mode === 'list') q = q.orderBy('exam_date', 'desc');
+    let q = db('exams')
+      .select(
+        'exams.*',
+        db.raw(`COALESCE(
+          (SELECT json_agg(json_build_object('id', c.id, 'name', c.name, 'section', c.section))
+           FROM exam_classes ec
+           JOIN classes c ON ec.class_id = c.id
+           WHERE ec.exam_id = exams.id),
+          '[]'::json
+        ) as classes`)
+      )
+      .where('exams.school_id', schoolId);
+    if (mode === 'list') q = q.orderBy('exams.exam_date', 'desc');
     return q;
   }, pagination);
 }
@@ -16,6 +27,27 @@ async function findById(id, schoolId) {
 async function create(data) {
   const [exam] = await db('exams').insert(data).returning('*');
   return exam;
+}
+
+async function assignClasses(examId, classIds) {
+  if (!classIds || classIds.length === 0) return [];
+  const rows = classIds.map((classId) => ({
+    exam_id: examId,
+    class_id: classId,
+  }));
+  return db('exam_classes').insert(rows).returning('*');
+}
+
+async function findClasses(examId) {
+  return db('exam_classes')
+    .select('classes.id', 'classes.name', 'classes.section')
+    .join('classes', 'exam_classes.class_id', 'classes.id')
+    .where('exam_classes.exam_id', examId)
+    .orderBy('classes.name');
+}
+
+async function removeClasses(examId) {
+  return db('exam_classes').where({ exam_id: examId }).del();
 }
 
 async function update(id, data, schoolId) {
@@ -58,4 +90,4 @@ async function removeSubject(examId, subjectId) {
     .del();
 }
 
-module.exports = { findAll, findById, create, update, remove, findSubjects, upsertSubject, removeSubject };
+module.exports = { findAll, findById, create, assignClasses, findClasses, removeClasses, update, remove, findSubjects, upsertSubject, removeSubject };

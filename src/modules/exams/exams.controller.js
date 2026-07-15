@@ -31,6 +31,15 @@ async function getById(req, res, next) {
   }
 }
 
+async function getClasses(req, res, next) {
+  try {
+    const classes = await examService.getClasses(req.params.id, req.user.schoolId);
+    res.json(classes);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function publish(req, res, next) {
   try {
     const exam = await examService.publish(req.params.id, req.validated.is_published, req.user.schoolId);
@@ -76,4 +85,4 @@ async function removeSubject(req, res, next) {
   }
 }
 
-module.exports = { list, create, getById, publish, remove, getSubjects, addSubject, removeSubject };
+module.exports = { list, create, getById, getClasses, publish, remove, getSubjects, addSubject, removeSubject };

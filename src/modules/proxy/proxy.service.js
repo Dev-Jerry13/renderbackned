@@ -134,8 +134,8 @@ async function getAvailableTeachers(schoolId, timetableId) {
   return repo.findAvailableTeachers(schoolId, timetableId, _todayStr());
 }
 
-async function getAdminProxies(date) {
-  return repo.findForDate(null, date || _todayStr());
+async function getAdminProxies(schoolId, date) {
+  return repo.findForDate(schoolId, date || _todayStr());
 }
 
 module.exports = {

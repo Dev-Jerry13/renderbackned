@@ -9,6 +9,7 @@ const router = Router();
 router.get('/', allow('admin', 'teacher', 'student'), controller.list);
 router.post('/', allow('admin'), validate(createExamSchema), controller.create);
 router.get('/:id', allow('admin', 'teacher', 'student'), controller.getById);
+router.get('/:id/classes', allow('admin', 'teacher'), controller.getClasses);
 router.get('/:id/subjects', allow('admin', 'teacher'), controller.getSubjects);
 router.post('/:id/subjects', allow('admin'), validate(examSubjectSchema), controller.addSubject);
 router.delete('/:id/subjects/:subjectId', allow('admin'), controller.removeSubject);

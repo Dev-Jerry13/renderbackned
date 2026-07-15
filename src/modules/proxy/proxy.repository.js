@@ -119,22 +119,26 @@ async function findAvailableTeachers(schoolId, timetableId, date) {
   if (!entry) return [];
 
   const busyTeacherIds = db('timetable')
-    .select('teacher_id')
-    .where('day', entry.day)
-    .where('start_time', '<', entry.end_time)
-    .where('end_time', '>', entry.start_time)
-    .where('id', '!=', timetableId)
-    .pluck('teacher_id');
+    .select('timetable.teacher_id')
+    .join('classes', 'timetable.class_id', 'classes.id')
+    .where('classes.school_id', schoolId)
+    .where('timetable.day', entry.day)
+    .where('timetable.start_time', '<', entry.end_time)
+    .where('timetable.end_time', '>', entry.start_time)
+    .where('timetable.id', '!=', timetableId)
+    .pluck('timetable.teacher_id');
 
   const busyProxyIds = db('proxy_assignments')
-    .select('proxy_teacher_id as teacher_id')
+    .select('proxy_assignments.proxy_teacher_id as teacher_id')
     .join('timetable as t', 'proxy_assignments.timetable_id', 't.id')
+    .join('classes', 't.class_id', 'classes.id')
+    .where('classes.school_id', schoolId)
     .where('proxy_assignments.date', date)
     .where('proxy_assignments.status', 'in', ['pending', 'accepted'])
     .where('t.day', entry.day)
     .where('t.start_time', '<', entry.end_time)
     .where('t.end_time', '>', entry.start_time)
-    .pluck('proxy_teacher_id');
+    .pluck('proxy_assignments.proxy_teacher_id');
 
   return db('teachers')
     .select('teachers.id', 'teachers.full_name')

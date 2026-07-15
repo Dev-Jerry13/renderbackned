@@ -92,7 +92,7 @@ async function available(req, res, next) {
 async function adminList(req, res, next) {
   try {
     const { date } = req.query;
-    const result = await proxyService.getAdminProxies(date);
+    const result = await proxyService.getAdminProxies(req.user.schoolId, date);
     res.json(result);
   } catch (err) {
     next(err);
