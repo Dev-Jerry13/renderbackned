@@ -118,6 +118,15 @@ async function findAvailableTeachers(schoolId, timetableId, date) {
     .first();
   if (!entry) return [];
 
+  const classTeacherIds = db('teacher_assignments')
+    .select('teacher_assignments.teacher_id')
+    .where('teacher_assignments.class_id', entry.class_id)
+    .union(function () {
+      this.select('timetable.teacher_id')
+        .from('timetable')
+        .where('timetable.class_id', entry.class_id);
+    });
+
   const busyTeacherIds = db('timetable')
     .select('timetable.teacher_id')
     .join('classes', 'timetable.class_id', 'classes.id')
@@ -147,6 +156,7 @@ async function findAvailableTeachers(schoolId, timetableId, date) {
     .where('users.role', 'teacher')
     .where('teachers.is_active', true)
     .where('teachers.id', '!=', entry.teacher_id)
+    .whereIn('teachers.id', classTeacherIds)
     .whereNotIn('teachers.id', busyTeacherIds)
     .whereNotIn('teachers.id', busyProxyIds)
     .orderBy('teachers.full_name');
