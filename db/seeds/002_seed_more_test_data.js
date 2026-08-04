@@ -581,13 +581,13 @@ exports.seed = async (knex) => {
   // ──────────────────────────────────────────────
   const days = ['mon', 'tue', 'wed', 'thu', 'fri'];
   const periods = [
-    { start: '08:00', end: '08:45' },
-    { start: '08:50', end: '09:35' },
-    { start: '09:40', end: '10:25' },
-    { start: '10:40', end: '11:25' },
-    { start: '11:30', end: '12:15' },
-    { start: '13:00', end: '13:45' },
-    { start: '13:50', end: '14:35' },
+    { start: '12:00', end: '12:45' },
+    { start: '12:50', end: '13:35' },
+    { start: '13:40', end: '14:25' },
+    { start: '14:40', end: '15:25' },
+    { start: '15:30', end: '16:15' },
+    { start: '17:00', end: '17:45' },
+    { start: '17:50', end: '18:35' },
   ];
 
   const existingTimetable = await knex('timetable');
