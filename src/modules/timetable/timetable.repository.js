@@ -26,6 +26,17 @@ function _teacherNameCol(date) {
   return 'teachers.full_name as teacher_name';
 }
 
+function _proxyCols(date) {
+  if (!date) {
+    return [];
+  }
+  return [
+    db.raw('pa.proxy_teacher_id as proxy_teacher_id'),
+    db.raw('pa.original_teacher_id as original_teacher_id'),
+    db.raw('CASE WHEN pa.id IS NOT NULL THEN true ELSE false END as has_proxy'),
+  ];
+}
+
 function _applyProxyJoin(query, date) {
   if (!date) {
     return query
@@ -46,9 +57,7 @@ async function findByClass(classId, schoolId, date) {
     .select(
       ..._baseSelect(),
       _teacherNameCol(date),
-      db.raw('pa.proxy_teacher_id as proxy_teacher_id'),
-      db.raw('pa.original_teacher_id as original_teacher_id'),
-      db.raw('CASE WHEN pa.id IS NOT NULL THEN true ELSE false END as has_proxy')
+      ..._proxyCols(date)
     )
     .join('subjects', 'timetable.subject_id', 'subjects.id')
     .join('classes', 'timetable.class_id', 'classes.id');
@@ -67,9 +76,7 @@ async function findByTeacher(teacherId, schoolId, date) {
     .select(
       ..._baseSelect(),
       _teacherNameCol(date),
-      db.raw('pa.proxy_teacher_id as proxy_teacher_id'),
-      db.raw('pa.original_teacher_id as original_teacher_id'),
-      db.raw('CASE WHEN pa.id IS NOT NULL THEN true ELSE false END as has_proxy')
+      ..._proxyCols(date)
     )
     .join('subjects', 'timetable.subject_id', 'subjects.id')
     .join('classes', 'timetable.class_id', 'classes.id');

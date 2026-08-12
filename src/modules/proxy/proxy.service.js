@@ -10,6 +10,31 @@ function _todayStr() {
   return `${y}-${m}-${d}`;
 }
 
+function _addDays(dateStr, days) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d + days));
+  return dt.toISOString().slice(0, 10);
+}
+
+function _dayOfWeekStr(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const weekday = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+  return ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][weekday];
+}
+
+function _resolveTargetDate(date) {
+  const today = _todayStr();
+  const tomorrow = _addDays(today, 1);
+  const targetDate = date || today;
+  if (targetDate !== today && targetDate !== tomorrow) {
+    throw new ApiError(
+      400,
+      'Proxy can only be assigned for today or tomorrow'
+    );
+  }
+  return targetDate;
+}
+
 async function _getTimetableEntry(timetableId) {
   return db('timetable')
     .select(
@@ -24,14 +49,21 @@ async function _getTimetableEntry(timetableId) {
     .first();
 }
 
-async function assignProxy(timetableId, proxyTeacherId, requestedBy, userRole, schoolId, reason) {
-  const today = _todayStr();
+async function assignProxy(timetableId, proxyTeacherId, requestedBy, userRole, schoolId, reason, date) {
+  const targetDate = _resolveTargetDate(date);
 
   const entry = await _getTimetableEntry(timetableId);
   if (!entry) throw new ApiError(404, 'Timetable entry not found');
 
   if (schoolId && entry.school_id !== schoolId) {
     throw new ApiError(404, 'Timetable entry not found');
+  }
+
+  if (entry.day !== _dayOfWeekStr(targetDate)) {
+    throw new ApiError(
+      400,
+      `Timetable entry is scheduled for ${entry.day}, not on ${targetDate}`
+    );
   }
 
   if (entry.teacher_id === proxyTeacherId) {
@@ -42,9 +74,9 @@ async function assignProxy(timetableId, proxyTeacherId, requestedBy, userRole, s
     throw new ApiError(403, 'You can only assign proxy for your own lectures');
   }
 
-  const existing = await repo.findByTimetableAndDate(timetableId, today);
+  const existing = await repo.findByTimetableAndDate(timetableId, targetDate);
   if (existing && (existing.status === 'pending' || existing.status === 'accepted')) {
-    throw new ApiError(409, 'A proxy is already assigned for this lecture today');
+    throw new ApiError(409, 'A proxy is already assigned for this lecture on the selected date');
   }
 
   const proxyTeacher = await db('teachers')
@@ -52,7 +84,7 @@ async function assignProxy(timetableId, proxyTeacherId, requestedBy, userRole, s
     .first();
   if (!proxyTeacher) throw new ApiError(404, 'Proxy teacher not found or inactive');
 
-  const available = await repo.findAvailableTeachers(entry.school_id, timetableId, today);
+  const available = await repo.findAvailableTeachers(entry.school_id, timetableId, targetDate);
   if (!available.some((t) => t.id === proxyTeacherId)) {
     throw new ApiError(409, 'Selected teacher is not available at this time slot');
   }
@@ -60,7 +92,7 @@ async function assignProxy(timetableId, proxyTeacherId, requestedBy, userRole, s
   const autoApprove = userRole === 'admin';
   const record = await repo.create({
     timetable_id: timetableId,
-    date: today,
+    date: targetDate,
     original_teacher_id: entry.teacher_id,
     proxy_teacher_id: proxyTeacherId,
     requested_by: requestedBy,
@@ -130,8 +162,9 @@ async function getTodayProxiesForClass(classId) {
   return repo.findAcceptedForClassOnDate(classId, _todayStr());
 }
 
-async function getAvailableTeachers(schoolId, timetableId) {
-  return repo.findAvailableTeachers(schoolId, timetableId, _todayStr());
+async function getAvailableTeachers(schoolId, timetableId, date) {
+  const targetDate = date || _todayStr();
+  return repo.findAvailableTeachers(schoolId, timetableId, targetDate);
 }
 
 async function getAdminProxies(schoolId, date) {

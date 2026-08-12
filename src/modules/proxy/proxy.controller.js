@@ -2,14 +2,15 @@ const proxyService = require('./proxy.service');
 
 async function assign(req, res, next) {
   try {
-    const { timetable_id, proxy_teacher_id, reason } = req.validated;
+    const { timetable_id, proxy_teacher_id, reason, date } = req.validated;
     const result = await proxyService.assignProxy(
       timetable_id,
       proxy_teacher_id,
       req.user.userId,
       req.user.role,
       req.user.schoolId,
-      reason
+      reason,
+      date
     );
     res.status(201).json(result);
   } catch (err) {
@@ -78,11 +79,11 @@ async function todayForClass(req, res, next) {
 
 async function available(req, res, next) {
   try {
-    const { timetableId } = req.query;
+    const { timetableId, date } = req.query;
     if (!timetableId) {
       return res.status(400).json({ error: 'timetableId query parameter is required' });
     }
-    const result = await proxyService.getAvailableTeachers(req.user.schoolId, timetableId);
+    const result = await proxyService.getAvailableTeachers(req.user.schoolId, timetableId, date);
     res.json(result);
   } catch (err) {
     next(err);

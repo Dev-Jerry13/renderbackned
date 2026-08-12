@@ -22,13 +22,15 @@ if (env.NODE_ENV === 'production') {
   });
 }
 
-app.use((req, res, next) => {
-  const forwardedProto = req.headers['x-forwarded-proto'] || req.protocol;
-  if (forwardedProto !== 'https' && !app.get('trust proxy')) {
-    return res.redirect(301, `https://${req.headers.host}${req.url}`);
-  }
-  next();
-});
+if (env.NODE_ENV === 'production') {
+  app.use((req, res, next) => {
+    const forwardedProto = req.headers['x-forwarded-proto'] || req.protocol;
+    if (forwardedProto !== 'https' && !app.get('trust proxy')) {
+      return res.redirect(301, `https://${req.headers.host}${req.url}`);
+    }
+    next();
+  });
+}
 
 app.use(helmet({
   hsts: { maxAge: 63072000, preload: true },
