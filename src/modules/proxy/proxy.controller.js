@@ -90,6 +90,19 @@ async function available(req, res, next) {
   }
 }
 
+async function teachers(req, res, next) {
+  try {
+    const { timetableId, date } = req.query;
+    if (!timetableId) {
+      return res.status(400).json({ error: 'timetableId query parameter is required' });
+    }
+    const result = await proxyService.getTeachersForProxy(req.user.schoolId, timetableId, date);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
 async function adminList(req, res, next) {
   try {
     const { date } = req.query;
@@ -108,5 +121,6 @@ module.exports = {
   pendingRequests,
   todayForClass,
   available,
+  teachers,
   adminList,
 };

@@ -50,7 +50,8 @@ async function _getTimetableEntry(timetableId) {
 }
 
 async function assignProxy(timetableId, proxyTeacherId, requestedBy, userRole, schoolId, reason, date) {
-  const targetDate = _resolveTargetDate(date);
+  const isAdmin = userRole === 'admin';
+  const targetDate = isAdmin ? (date || _todayStr()) : _resolveTargetDate(date);
 
   const entry = await _getTimetableEntry(timetableId);
   if (!entry) throw new ApiError(404, 'Timetable entry not found');
@@ -70,7 +71,7 @@ async function assignProxy(timetableId, proxyTeacherId, requestedBy, userRole, s
     throw new ApiError(400, 'Cannot assign proxy to yourself');
   }
 
-  if (userRole !== 'admin' && entry.teacher_user_id !== requestedBy) {
+  if (!isAdmin && entry.teacher_user_id !== requestedBy) {
     throw new ApiError(403, 'You can only assign proxy for your own lectures');
   }
 
@@ -80,23 +81,27 @@ async function assignProxy(timetableId, proxyTeacherId, requestedBy, userRole, s
   }
 
   const proxyTeacher = await db('teachers')
-    .where({ id: proxyTeacherId, is_active: true })
+    .join('users', 'teachers.user_id', 'users.id')
+    .where('teachers.id', proxyTeacherId)
+    .where('teachers.is_active', true)
+    .where('users.school_id', schoolId)
     .first();
   if (!proxyTeacher) throw new ApiError(404, 'Proxy teacher not found or inactive');
 
-  const available = await repo.findAvailableTeachers(entry.school_id, timetableId, targetDate);
-  if (!available.some((t) => t.id === proxyTeacherId)) {
-    throw new ApiError(409, 'Selected teacher is not available at this time slot');
+  if (!isAdmin) {
+    const available = await repo.findAvailableTeachers(entry.school_id, timetableId, targetDate);
+    if (!available.some((t) => t.id === proxyTeacherId)) {
+      throw new ApiError(409, 'Selected teacher is not available at this time slot');
+    }
   }
 
-  const autoApprove = userRole === 'admin';
   const record = await repo.create({
     timetable_id: timetableId,
     date: targetDate,
     original_teacher_id: entry.teacher_id,
     proxy_teacher_id: proxyTeacherId,
     requested_by: requestedBy,
-    status: autoApprove ? 'accepted' : 'pending',
+    status: isAdmin ? 'accepted' : 'pending',
     reason: reason || null,
   });
 
@@ -167,6 +172,11 @@ async function getAvailableTeachers(schoolId, timetableId, date) {
   return repo.findAvailableTeachers(schoolId, timetableId, targetDate);
 }
 
+async function getTeachersForProxy(schoolId, timetableId, date) {
+  const targetDate = date || _todayStr();
+  return repo.findTeachersWithStatus(schoolId, timetableId, targetDate);
+}
+
 async function getAdminProxies(schoolId, date) {
   return repo.findForDate(schoolId, date || _todayStr());
 }
@@ -179,5 +189,6 @@ module.exports = {
   getPendingRequests,
   getTodayProxiesForClass,
   getAvailableTeachers,
+  getTeachersForProxy,
   getAdminProxies,
 };

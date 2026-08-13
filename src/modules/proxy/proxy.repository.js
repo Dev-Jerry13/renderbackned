@@ -160,6 +160,60 @@ async function findAvailableTeachers(schoolId, timetableId, date) {
     .orderBy('teachers.full_name');
 }
 
+async function findTeachersWithStatus(schoolId, timetableId, date) {
+  const entry = await db('timetable')
+    .where({ id: timetableId })
+    .first();
+  if (!entry) return { available: [], busy: [] };
+
+  const [classBusyIds, proxyBusyIds] = await Promise.all([
+    db('timetable')
+      .select('timetable.teacher_id as id')
+      .join('classes', 'timetable.class_id', 'classes.id')
+      .where('classes.school_id', schoolId)
+      .where('timetable.day', entry.day)
+      .where('timetable.start_time', '<', entry.end_time)
+      .where('timetable.end_time', '>', entry.start_time)
+      .where('timetable.id', '!=', timetableId),
+    db('proxy_assignments')
+      .select('proxy_assignments.proxy_teacher_id as id')
+      .join('timetable as t', 'proxy_assignments.timetable_id', 't.id')
+      .join('classes', 't.class_id', 'classes.id')
+      .where('classes.school_id', schoolId)
+      .where('proxy_assignments.date', date)
+      .where('proxy_assignments.status', 'in', ['pending', 'accepted'])
+      .where('t.day', entry.day)
+      .where('t.start_time', '<', entry.end_time)
+      .where('t.end_time', '>', entry.start_time),
+  ]);
+
+  const busyIds = new Set([
+    ...classBusyIds.map((r) => r.id),
+    ...proxyBusyIds.map((r) => r.id),
+  ]);
+
+  const allTeachers = await db('teachers')
+    .select('teachers.id', 'teachers.full_name')
+    .join('users', 'teachers.user_id', 'users.id')
+    .where('users.school_id', schoolId)
+    .where('users.role', 'teacher')
+    .where('teachers.is_active', true)
+    .where('teachers.id', '!=', entry.teacher_id)
+    .orderBy('teachers.full_name');
+
+  const available = [];
+  const busy = [];
+  for (const teacher of allTeachers) {
+    if (busyIds.has(teacher.id)) {
+      busy.push(teacher);
+    } else {
+      available.push(teacher);
+    }
+  }
+
+  return { available, busy };
+}
+
 async function create(data) {
   const [record] = await db('proxy_assignments').insert(data).returning('*');
   return record;
@@ -185,6 +239,7 @@ module.exports = {
   findForDate,
   findAcceptedForClassOnDate,
   findAvailableTeachers,
+  findTeachersWithStatus,
   create,
   updateStatus,
   remove,

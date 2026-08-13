@@ -101,6 +101,7 @@ async function healthCheck(req, res) {
 }
 
 app.get('/api/health', healthCheck);
+app.get('/api/v1/health', healthCheck);
 
 const apiModules = [
   { path: '/auth', middleware: [authLimiter], module: require('./modules/auth/auth.routes') },

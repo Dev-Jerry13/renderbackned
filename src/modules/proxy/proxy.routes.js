@@ -51,6 +51,12 @@ router.get(
 );
 
 router.get(
+  '/teachers',
+  allow('admin'),
+  controller.teachers
+);
+
+router.get(
   '/admin/all',
   allow('admin'),
   controller.adminList
