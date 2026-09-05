@@ -14,30 +14,34 @@ async function getById(id, schoolId) {
 }
 
 async function create(data) {
-  const existing = await db('users').where({ email: data.email }).first();
-  if (existing) throw new ApiError(409, 'Email already in use');
-
   const password_hash = await hashPassword(data.password);
 
-  const [user] = await db('users').insert({
-    email: data.email,
-    password_hash,
-    role: 'student',
-    school_id: data.school_id,
-  }).returning('*');
+  const student = await db.transaction(async (trx) => {
+    const existing = await trx('users').where({ email: data.email }).first();
+    if (existing) throw new ApiError(409, 'Email already in use');
 
-  const studentData = {
-    user_id: user.id,
-    full_name: data.full_name,
-    class_id: data.class_id,
-    roll_number: data.roll_number || null,
-    dob: data.dob || null,
-    parent_name: data.parent_name || null,
-    parent_phone: data.parent_phone || null,
-    emergency_contact: data.emergency_contact || null,
-  };
+    const [user] = await trx('users').insert({
+      email: data.email,
+      password_hash,
+      role: 'student',
+      school_id: data.school_id,
+    }).returning('*');
 
-  const student = await repo.create(studentData);
+    const studentData = {
+      user_id: user.id,
+      full_name: data.full_name,
+      class_id: data.class_id,
+      roll_number: data.roll_number || null,
+      dob: data.dob || null,
+      parent_name: data.parent_name || null,
+      parent_phone: data.parent_phone || null,
+      emergency_contact: data.emergency_contact || null,
+    };
+
+    const [student] = await trx('students').insert(studentData).returning('*');
+    return student;
+  });
+
   return repo.findById(student.id, data.school_id);
 }
 
@@ -63,37 +67,44 @@ async function activate(id, isActive, schoolId) {
 async function promote(data, schoolId) {
   const { from_class_id, to_class_id, academic_year, student_ids, status } = data;
 
-  const fromClass = await db('classes').where({ id: from_class_id, school_id: schoolId }).first();
-  if (!fromClass) throw new ApiError(404, 'Source class not found');
+  const result = await db.transaction(async (trx) => {
+    const fromClass = await trx('classes').where({ id: from_class_id, school_id: schoolId }).first();
+    if (!fromClass) throw new ApiError(404, 'Source class not found');
 
-  const toClass = await db('classes').where({ id: to_class_id, school_id: schoolId }).first();
-  if (!toClass) throw new ApiError(404, 'Target class not found');
+    const toClass = await trx('classes').where({ id: to_class_id, school_id: schoolId }).first();
+    if (!toClass) throw new ApiError(404, 'Target class not found');
 
-  const students = await db('students')
-    .whereIn('id', student_ids)
-    .where('class_id', from_class_id);
+    const students = await trx('students')
+      .whereIn('id', student_ids)
+      .where('class_id', from_class_id);
 
-  if (students.length !== student_ids.length) {
-    throw new ApiError(400, 'Some students not found or not in the source class');
-  }
+    if (students.length !== student_ids.length) {
+      throw new ApiError(400, 'Some students not found or not in the source class');
+    }
 
-  const historyRecords = students.map((s) => ({
-    student_id: s.id,
-    class_id: to_class_id,
-    academic_year,
-    status,
-  }));
+    const historyRecords = students.map((s) => ({
+      student_id: s.id,
+      class_id: to_class_id,
+      academic_year,
+      status,
+    }));
 
-  await db('student_academic_years').insert(historyRecords);
+    await trx('student_academic_years')
+      .insert(historyRecords)
+      .onConflict(['student_id', 'academic_year'])
+      .merge({ class_id: to_class_id, status, updated_at: trx.fn.now() });
 
-  await db('students')
-    .whereIn('id', student_ids)
-    .update({ class_id: to_class_id });
+    await trx('students')
+      .whereIn('id', student_ids)
+      .update({ class_id: to_class_id });
 
-  return {
-    message: `Successfully promoted ${students.length} student(s) to ${toClass.name}${toClass.section ? ' - ' + toClass.section : ''}`,
-    count: students.length,
-  };
+    return {
+      message: `Successfully promoted ${students.length} student(s) to ${toClass.name}${toClass.section ? ' - ' + toClass.section : ''}`,
+      count: students.length,
+    };
+  });
+
+  return result;
 }
 
 module.exports = { list, getById, create, update, remove, activate, promote };

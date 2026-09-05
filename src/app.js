@@ -22,16 +22,6 @@ if (env.NODE_ENV === 'production') {
   });
 }
 
-if (env.NODE_ENV === 'production') {
-  app.use((req, res, next) => {
-    const forwardedProto = req.headers['x-forwarded-proto'] || req.protocol;
-    if (forwardedProto !== 'https' && !app.get('trust proxy')) {
-      return res.redirect(301, `https://${req.headers.host}${req.url}`);
-    }
-    next();
-  });
-}
-
 app.use(helmet({
   hsts: { maxAge: 63072000, preload: true },
   contentSecurityPolicy: false,
@@ -102,6 +92,9 @@ async function healthCheck(req, res) {
 
 app.get('/api/health', healthCheck);
 app.get('/api/v1/health', healthCheck);
+
+app.use('/api', apiLimiter);
+app.use('/api/v1', apiLimiter);
 
 const apiModules = [
   { path: '/auth', middleware: [authLimiter], module: require('./modules/auth/auth.routes') },

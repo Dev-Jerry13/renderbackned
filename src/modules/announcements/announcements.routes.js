@@ -9,7 +9,8 @@ const router = Router();
 router.get('/', allow('admin', 'teacher', 'student'), controller.list);
 router.get('/teacher/:teacherId', allow('admin', 'teacher'), controller.listByTeacher);
 router.post('/', allow('admin', 'teacher'), validate(createAnnouncementSchema), controller.create);
-router.put('/:id', allow('admin'), validate(updateAnnouncementSchema), controller.update);
-router.delete('/:id', allow('admin'), controller.remove);
+router.get('/:id', allow('admin', 'teacher', 'student'), controller.getById);
+router.put('/:id', allow('admin', 'teacher'), validate(updateAnnouncementSchema), controller.update);
+router.delete('/:id', allow('admin', 'teacher'), controller.remove);
 
 module.exports = router;

@@ -1,3 +1,4 @@
+const db = require('../../config/db');
 const ApiError = require('../../utils/ApiError');
 const repo = require('./timetable.repository');
 
@@ -19,7 +20,24 @@ async function _checkConflicts(data, excludeId) {
   }
 }
 
-async function create(data) {
+async function _assertSameSchool(schoolId, classId, subjectId, teacherId) {
+  const [cls, subject, teacher] = await Promise.all([
+    db('classes').where({ id: classId, school_id: schoolId }).first(),
+    db('subjects').where({ id: subjectId, school_id: schoolId }).first(),
+    db('teachers')
+      .join('users', 'teachers.user_id', 'users.id')
+      .where('teachers.id', teacherId)
+      .where('users.school_id', schoolId)
+      .first(),
+  ]);
+
+  if (!cls) throw new ApiError(404, 'Class not found');
+  if (!subject) throw new ApiError(404, 'Subject not found');
+  if (!teacher) throw new ApiError(404, 'Teacher not found');
+}
+
+async function create(data, schoolId) {
+  await _assertSameSchool(schoolId, data.class_id, data.subject_id, data.teacher_id);
   await _checkConflicts(data);
   return repo.create(data);
 }
@@ -28,6 +46,7 @@ async function update(id, data, schoolId) {
   const entry = await repo.findById(id, schoolId);
   if (!entry) throw new ApiError(404, 'Timetable entry not found');
   const merged = { ...entry, ...data };
+  await _assertSameSchool(schoolId, merged.class_id, merged.subject_id, merged.teacher_id);
   await _checkConflicts(merged, id);
   return repo.update(id, data, schoolId);
 }

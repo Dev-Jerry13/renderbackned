@@ -9,6 +9,11 @@ async function bulkEntry(data, user) {
   const subject = await db('subjects').where({ id: data.subjectId, school_id: user.schoolId }).first();
   if (!subject) throw new ApiError(404, 'Subject not found');
 
+  const examSubject = await db('exam_subjects')
+    .where({ exam_id: data.examId, subject_id: data.subjectId })
+    .first();
+
+  const teacherClassIds = [];
   if (user.role === 'teacher') {
     const subjectAssignment = await db('teacher_assignments')
       .where({ teacher_id: user.teacherId, subject_id: data.subjectId })
@@ -17,27 +22,34 @@ async function bulkEntry(data, user) {
       throw new ApiError(403, 'You are not assigned to this subject');
     }
 
-    const teacherClassIds = (
-      await db('teacher_assignments')
+    teacherClassIds.push(
+      ...(await db('teacher_assignments')
         .where({ teacher_id: user.teacherId })
-        .select('class_id')
-    ).map((a) => a.class_id);
+        .select('class_id')).map((a) => a.class_id)
+    );
+  }
 
-    for (const m of data.marks) {
-      const student = await db('students').where({ id: m.studentId }).first();
-      if (!student) throw new ApiError(404, `Student not found: ${m.studentId}`);
-      if (!teacherClassIds.includes(student.class_id)) {
-        const studentData = student;
-        throw new ApiError(
-          403,
-          `Student ${studentData.full_name} is not in a class you are assigned to`,
-        );
-      }
+  const studentIds = data.marks.map((m) => m.studentId);
+  const students = await db('students')
+    .join('users', 'students.user_id', 'users.id')
+    .whereIn('students.id', studentIds)
+    .where('users.school_id', user.schoolId)
+    .select('students.id', 'students.class_id', 'students.full_name');
+
+  const studentMap = new Map(students.map((s) => [s.id, s]));
+  for (const m of data.marks) {
+    const student = studentMap.get(m.studentId);
+    if (!student) throw new ApiError(404, `Student not found: ${m.studentId}`);
+
+    if (examSubject && m.marksObtained > parseFloat(examSubject.max_marks)) {
+      throw new ApiError(
+        400,
+        `Marks for ${student.full_name} exceed the maximum (${examSubject.max_marks})`
+      );
     }
-  } else {
-    for (const m of data.marks) {
-      const student = await db('students').where({ id: m.studentId }).first();
-      if (!student) throw new ApiError(404, `Student not found: ${m.studentId}`);
+
+    if (user.role === 'teacher' && !teacherClassIds.includes(student.class_id)) {
+      throw new ApiError(403, `Student ${student.full_name} is not in a class you are assigned to`);
     }
   }
 

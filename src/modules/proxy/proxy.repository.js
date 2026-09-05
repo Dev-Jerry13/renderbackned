@@ -219,6 +219,14 @@ async function create(data) {
   return record;
 }
 
+async function updateForReassign(id, data) {
+  const [record] = await db('proxy_assignments')
+    .where({ id })
+    .update({ ...data, updated_at: db.fn.now() })
+    .returning('*');
+  return record;
+}
+
 async function updateStatus(id, status) {
   const [record] = await db('proxy_assignments')
     .where({ id })
@@ -241,6 +249,7 @@ module.exports = {
   findAvailableTeachers,
   findTeachersWithStatus,
   create,
+  updateForReassign,
   updateStatus,
   remove,
 };

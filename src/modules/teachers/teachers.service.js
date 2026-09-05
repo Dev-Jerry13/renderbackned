@@ -15,25 +15,29 @@ async function getById(id, schoolId) {
 }
 
 async function create(data) {
-  const existing = await db('users').where({ email: data.email }).first();
-  if (existing) throw new ApiError(409, 'Email already in use');
-
   const password_hash = await hashPassword(data.password);
 
-  const [user] = await db('users').insert({
-    email: data.email,
-    password_hash,
-    role: 'teacher',
-    school_id: data.school_id,
-  }).returning('*');
+  const teacher = await db.transaction(async (trx) => {
+    const existing = await trx('users').where({ email: data.email }).first();
+    if (existing) throw new ApiError(409, 'Email already in use');
 
-  const teacherData = {
-    user_id: user.id,
-    full_name: data.full_name,
-    phone: data.phone || null,
-  };
+    const [user] = await trx('users').insert({
+      email: data.email,
+      password_hash,
+      role: 'teacher',
+      school_id: data.school_id,
+    }).returning('*');
 
-  const teacher = await repo.create(teacherData);
+    const teacherData = {
+      user_id: user.id,
+      full_name: data.full_name,
+      phone: data.phone || null,
+    };
+
+    const [teacher] = await trx('teachers').insert(teacherData).returning('*');
+    return teacher;
+  });
+
   return repo.findById(teacher.id, data.school_id);
 }
 

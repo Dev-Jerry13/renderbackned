@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const validate = require('../../middleware/validate');
 const allow = require('../../middleware/rbac');
+const studentSelf = require('../../middleware/studentSelf');
 const controller = require('./fees.controller');
 const { createFeeStructureSchema, recordPaymentSchema, createFeePostSchema } = require('./fees.schema');
 
@@ -10,7 +11,7 @@ router.get('/structures', allow('admin'), controller.listStructures);
 router.post('/structures', allow('admin'), validate(createFeeStructureSchema), controller.createStructure);
 router.get('/pending', allow('admin'), controller.listPending);
 router.post('/payments', allow('admin'), validate(recordPaymentSchema), controller.recordPayment);
-router.get('/student/:id', allow('admin', 'student'), controller.getByStudent);
+router.get('/student/:id', allow('admin', 'student'), studentSelf, controller.getByStudent);
 router.get('/unpaid', allow('admin'), controller.listUnpaid);
 
 router.post('/posts', allow('admin'), validate(createFeePostSchema), controller.createPost);

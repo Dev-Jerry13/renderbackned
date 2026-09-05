@@ -19,8 +19,12 @@ async function create(data) {
 async function assign(subjectId, teacherId, classId, schoolId) {
   await getById(subjectId, schoolId);
 
-  const teacher = await db('teachers').where({ id: teacherId }).first();
-  if (!teacher) throw new ApiError(404, 'Teacher not found');
+  const teacher = await db('teachers')
+    .join('users', 'teachers.user_id', 'users.id')
+    .where('teachers.id', teacherId)
+    .where('users.school_id', schoolId)
+    .first();
+  if (!teacher) throw new ApiError(404, 'Teacher not found in this school');
 
   const cls = await db('classes').where({ id: classId, school_id: schoolId }).first();
   if (!cls) throw new ApiError(404, 'Class not found');

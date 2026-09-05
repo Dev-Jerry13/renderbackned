@@ -12,6 +12,18 @@ async function markAttendance(data, user) {
     }
   }
 
+  const studentIds = data.records.map((r) => r.studentId);
+  const validStudents = await db('students')
+    .join('users', 'students.user_id', 'users.id')
+    .whereIn('students.id', studentIds)
+    .where('students.class_id', data.classId)
+    .where('users.school_id', user.schoolId)
+    .select('students.id');
+
+  if (validStudents.length !== new Set(studentIds).size) {
+    throw new ApiError(400, 'One or more students not found in this class');
+  }
+
   const records = data.records.map((r) => ({
     student_id: r.studentId,
     class_id: data.classId,

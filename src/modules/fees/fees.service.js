@@ -1,6 +1,7 @@
 const ApiError = require('../../utils/ApiError');
 const repo = require('./fees.repository');
 const db = require('../../config/db');
+const { randomUUID } = require('crypto');
 
 async function listStructures(schoolId, pagination) {
   return repo.findAllStructures(schoolId, pagination);
@@ -15,7 +16,24 @@ async function listPending(schoolId, pagination) {
 }
 
 async function recordPayment(data) {
-  return repo.createPayment(data);
+  const student = await repo.findStudentById(data.student_id, data.school_id);
+  if (!student) throw new ApiError(404, 'Student not found');
+
+  if (data.fee_structure_id) {
+    const structure = await repo.findStructureById(data.fee_structure_id, data.school_id);
+    if (!structure) throw new ApiError(404, 'Fee structure not found');
+  }
+
+  return repo.createPayment({
+    student_id: data.student_id,
+    fee_structure_id: data.fee_structure_id || null,
+    amount_paid: data.amount_paid,
+    payment_date: data.payment_date,
+    payment_mode: data.payment_mode || null,
+    status: data.status,
+    school_id: data.school_id,
+    transaction_id: randomUUID(),
+  });
 }
 
 async function getByStudent(studentId, schoolId) {
@@ -88,7 +106,7 @@ async function getByStudent(studentId, schoolId) {
     amount: parseFloat(p.amount_paid),
     payment_date: p.payment_date,
     payment_method: p.payment_mode || null,
-    transaction_id: null,
+    transaction_id: p.transaction_id || null,
   }));
 
   return { posts, payments: mappedPayments };

@@ -95,7 +95,7 @@ async function assignProxy(timetableId, proxyTeacherId, requestedBy, userRole, s
     }
   }
 
-  const record = await repo.create({
+  const assignmentData = {
     timetable_id: timetableId,
     date: targetDate,
     original_teacher_id: entry.teacher_id,
@@ -103,7 +103,11 @@ async function assignProxy(timetableId, proxyTeacherId, requestedBy, userRole, s
     requested_by: requestedBy,
     status: isAdmin ? 'accepted' : 'pending',
     reason: reason || null,
-  });
+  };
+
+  const record = existing
+    ? await repo.updateForReassign(existing.id, assignmentData)
+    : await repo.create(assignmentData);
 
   return {
     ...record,

@@ -9,6 +9,17 @@ async function list(schoolId, pagination) {
 async function create(data) {
   const { class_ids, publish_now, ...examData } = data;
 
+  if (class_ids && class_ids.length > 0) {
+    const uniqueIds = [...new Set(class_ids)];
+    const found = await db('classes')
+      .whereIn('id', uniqueIds)
+      .where('school_id', examData.school_id)
+      .select('id');
+    if (found.length !== uniqueIds.length) {
+      throw new ApiError(400, 'Some classes were not found in your school');
+    }
+  }
+
   const exam = await db.transaction(async (trx) => {
     const [exam] = await trx('exams').insert({
       name: examData.name,

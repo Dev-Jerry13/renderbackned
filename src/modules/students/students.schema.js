@@ -32,4 +32,8 @@ const promoteStudentsSchema = z.object({
   status: z.enum(['promoted', 'retained']).nullable().optional().default('promoted'),
 });
 
-module.exports = { createStudentSchema, updateStudentSchema, promoteStudentsSchema };
+const activateStudentSchema = z.object({
+  is_active: z.boolean().optional(),
+});
+
+module.exports = { createStudentSchema, updateStudentSchema, promoteStudentsSchema, activateStudentSchema };

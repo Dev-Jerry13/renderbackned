@@ -14,29 +14,33 @@ async function getById(id, schoolId) {
 }
 
 async function create(data) {
-  const existing = await db('users').where({ email: data.email }).first();
-  if (existing) throw new ApiError(409, 'Email already in use');
-
   const password_hash = await hashPassword(data.password);
 
-  const [user] = await db('users').insert({
-    email: data.email,
-    password_hash,
-    role: 'staff',
-    school_id: data.school_id,
-  }).returning('*');
+  const staff = await db.transaction(async (trx) => {
+    const existing = await trx('users').where({ email: data.email }).first();
+    if (existing) throw new ApiError(409, 'Email already in use');
 
-  const staffData = {
-    user_id: user.id,
-    full_name: data.full_name,
-    phone: data.phone || null,
-    department: data.department || null,
-    designation: data.designation || null,
-    salary: data.salary || null,
-    joining_date: data.joining_date || null,
-  };
+    const [user] = await trx('users').insert({
+      email: data.email,
+      password_hash,
+      role: 'staff',
+      school_id: data.school_id,
+    }).returning('*');
 
-  const staff = await repo.create(staffData);
+    const staffData = {
+      user_id: user.id,
+      full_name: data.full_name,
+      phone: data.phone || null,
+      department: data.department || null,
+      designation: data.designation || null,
+      salary: data.salary || null,
+      joining_date: data.joining_date || null,
+    };
+
+    const [staff] = await trx('staff').insert(staffData).returning('*');
+    return staff;
+  });
+
   return repo.findById(staff.id, data.school_id);
 }
 
