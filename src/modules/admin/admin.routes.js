@@ -7,6 +7,7 @@ const { updateSchoolSchema } = require('./admin.schema');
 const router = Router();
 
 router.get('/dashboard/stats', allow('admin'), controller.dashboardStats);
+router.get('/dashboard/overview', allow('admin'), controller.dashboardOverview);
 router.get('/school', allow('admin'), controller.getSchoolProfile);
 router.put('/school', allow('admin'), validate(updateSchoolSchema), controller.updateSchoolProfile);
 
