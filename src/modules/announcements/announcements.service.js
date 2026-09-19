@@ -1,6 +1,7 @@
 const db = require('../../config/db');
 const ApiError = require('../../utils/ApiError');
 const repo = require('./announcements.repository');
+const teacherRepo = require('../teachers/teachers.repository');
 
 async function list(schoolId, classId, pagination) {
   return repo.findAll(schoolId, classId || null, pagination);
@@ -43,7 +44,7 @@ async function update(id, data, user) {
 }
 
 async function listByTeacher(schoolId, teacherId, pagination) {
-  const teacher = await db('teachers').where({ id: teacherId, school_id: schoolId }).first();
+  const teacher = await teacherRepo.findById(teacherId, schoolId);
   if (!teacher) throw new ApiError(404, 'Teacher not found');
   return repo.findByTeacher(schoolId, teacher.user_id, pagination);
 }
