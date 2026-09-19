@@ -28,9 +28,13 @@ app.use(helmet({
 }));
 
 const allowedOrigins = env.CORS_ORIGINS.split(',').map(s => s.trim());
+const isLocalhostOrigin = (origin) =>
+  /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
 app.use(cors({
   origin: function (origin, cb) {
-    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    if (!origin || allowedOrigins.includes(origin) || isLocalhostOrigin(origin)) {
+      return cb(null, true);
+    }
     cb(null, false);
   },
   credentials: true,

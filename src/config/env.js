@@ -6,7 +6,7 @@ const env = {
   DATABASE_URL: process.env.DATABASE_URL,
   JWT_SECRET: process.env.JWT_SECRET,
   JWT_EXPIRES: process.env.JWT_EXPIRES || '7d',
-  CORS_ORIGINS: process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:5173,http://localhost:8081',
+  CORS_ORIGINS: process.env.CORS_ORIGINS || 'http://localhost:3000,http://localhost:5173,http://localhost:8081,http://localhost:7350,http://localhost:8080,http://localhost:5000,https://schoolerpv7.netlify.app,https://schoolerpv7.vercel.app',
   RATE_LIMIT_WINDOW_MS: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000,
   RATE_LIMIT_MAX: parseInt(process.env.RATE_LIMIT_MAX, 10) || 20,
   API_RATE_LIMIT_WINDOW_MS: parseInt(process.env.API_RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000,
