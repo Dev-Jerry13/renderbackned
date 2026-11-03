@@ -6,7 +6,7 @@ async function mark(req, res) {
 }
 
 async function list(req, res) {
-  const { classId, date } = req.query;
+  const { classId, date } = req.validatedQuery;
   const records = await attendanceService.getByClassAndDate(classId, date, req.user);
   res.json(records);
 }

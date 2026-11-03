@@ -22,8 +22,8 @@ async function findByExamAndSubject(examId, subjectId, classId, pagination, scho
   }, pagination);
 }
 
-async function findByStudent(studentId, schoolId) {
-  return db('results')
+async function findByStudent(studentId, schoolId, publishedOnly = false) {
+  let query = db('results')
     .select(
       'results.*',
       'exams.name as exam_name',
@@ -32,8 +32,13 @@ async function findByStudent(studentId, schoolId) {
     .join('exams', 'results.exam_id', 'exams.id')
     .join('subjects', 'results.subject_id', 'subjects.id')
     .where('results.student_id', studentId)
-    .where('exams.school_id', schoolId)
-    .orderBy('exams.exam_date', 'desc');
+    .where('exams.school_id', schoolId);
+
+  if (publishedOnly) {
+    query = query.where('exams.is_published', true);
+  }
+
+  return query.orderBy('exams.exam_date', 'desc');
 }
 
 async function bulkUpsert(records) {

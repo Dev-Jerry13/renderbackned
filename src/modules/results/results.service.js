@@ -66,6 +66,9 @@ async function bulkEntry(data, user) {
 
 async function getByExamAndSubject(examId, subjectId, classId, user, pagination) {
   if (user.role === 'teacher') {
+    if (!classId) {
+      throw new ApiError(400, 'classId is required for teacher result queries');
+    }
     const assignment = await db('teacher_assignments')
       .where({ teacher_id: user.teacherId, subject_id: subjectId, class_id: classId })
       .first();
@@ -76,8 +79,11 @@ async function getByExamAndSubject(examId, subjectId, classId, user, pagination)
   return repo.findByExamAndSubject(examId, subjectId, classId, pagination, user.schoolId);
 }
 
-async function getByStudent(studentId, schoolId) {
-  return repo.findByStudent(studentId, schoolId);
+async function getByStudent(studentId, schoolId, user) {
+  // Students may only ever see results for exams that have been published.
+  // Staff (admin/teacher) keep full visibility for data entry and review.
+  const publishedOnly = user.role === 'student';
+  return repo.findByStudent(studentId, schoolId, publishedOnly);
 }
 
 module.exports = { bulkEntry, getByExamAndSubject, getByStudent };

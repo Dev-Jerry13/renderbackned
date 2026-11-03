@@ -13,4 +13,13 @@ const updateAttendanceSchema = z.object({
   status: z.enum(['present', 'absent', 'late']),
 });
 
-module.exports = { markAttendanceSchema, updateAttendanceSchema };
+const listAttendanceQuerySchema = z.object({
+  classId: z.string().uuid('Invalid class ID'),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD'),
+});
+
+module.exports = {
+  markAttendanceSchema,
+  updateAttendanceSchema,
+  listAttendanceQuerySchema,
+};

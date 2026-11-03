@@ -6,7 +6,7 @@ async function bulk(req, res) {
 }
 
 async function list(req, res) {
-  const { examId, subjectId, classId, page, limit } = req.query;
+  const { examId, subjectId, classId, page, limit } = req.validatedQuery;
   const result = await resultService.getByExamAndSubject(
     examId, subjectId, classId, req.user, { page, limit }
   );
@@ -14,7 +14,7 @@ async function list(req, res) {
 }
 
 async function getByStudent(req, res) {
-  const results = await resultService.getByStudent(req.params.id, req.user.schoolId);
+  const results = await resultService.getByStudent(req.params.id, req.user.schoolId, req.user);
   res.json(results);
 }
 
